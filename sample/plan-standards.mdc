@@ -1,0 +1,338 @@
+# Plan Document Standards
+
+Every plan document MUST meet these requirements before it is considered complete.
+
+## 1. Ground-Check Before Writing
+
+Before writing any plan, verify every file path and claim against the actual codebase.
+
+- [ ] Every referenced file path exists (`Test-Path` or `ls`)
+- [ ] Every function name referenced exists (`Select-String` for the export)
+- [ ] Every line number is approximate — prefer function names (line numbers drift as other items touch the same files)
+- [ ] Every NEW file listed does NOT already exist (verify with `Test-Path`)
+- [ ] Every claim (e.g. "PBKDF2 at 600k iterations") is verified against source
+- [ ] **Cross-reference plan numbers** — plans referencing other plans (e.g. "see 011 items 5+12") must verify the target plan actually has those items
+- [ ] **Frontend ↔ backend type audit** — when a plan defines both Scala and TypeScript types, verify the response format matches field-by-field. The frontend's actual TypeScript type is the ground truth
+- [ ] **Verification commands tested** — every `curl`, `npm test`, or `sbt test` command in the plan must actually work. If a referenced test file doesn't exist (e.g. `boundaryIngestion.test.ts`), fix the command or create the test file
+- [ ] **State the audit at the top** — add a line like `**Cross-reference:** YYYY-MM-DD — codebase verified` with severity of any gaps found
+
+If a path doesn't exist, either fix it or flag it as a pre-requisite in the plan.
+
+### Common Ground-Check Failures (Lessons Learned)
+
+| Failure | How to Catch | Fix |
+|---------|-------------|-----|
+| Test file referenced doesn't exist | `Test-Path src/__tests__/boundaryIngestion.test.ts` | Create the file or use an existing one |
+| Plan references non-existent item number (e.g. "011 item 10" when 011 has 8 items) | Read the referenced plan's table of contents | Fix the reference or clarify scope |
+| Scala model doesn't match TypeScript types (field names, nesting, optionality) | Compare the proposed model against the actual `src/types/*.ts` types field-by-field | Rewrite the model to match frontend's actual type |
+| Route URL format mismatch (path params vs query params) | Check `src/api/*.ts` for the actual API client call | Align conf/routes with the actual `apiClient()` call |
+| Missing workspace/tenant scope in API call | Check if the hook passes `workspaceId` or `tenantId` | Add the param to the API client and route
+
+## 2. Required Sections
+
+Every plan MUST contain:
+
+| Section | Purpose |
+|---------|---------|
+| **Why We Need This** | What problem does this solve? Who feels the pain? |
+| **What Happens If We Don't** | Concrete costs: lost customers, compliance risk, technical debt |
+| **Cross-reference audit** | Date of verification + severity table (✅/❌/🟡 with CRITICAL/HIGH/MEDIUM/LOW labels) |
+| **Implementation Script** | Per-step: exact file paths, code snippets, verification commands |
+| **Review Comments** | Ground-check findings table with severity labels |
+| **Items Resolved** | What was fixed during review (table with issue → fix) |
+| **Open Issues (STILL OPEN)** | What remains unresolved (table with #, issue, impact, action) |
+| **Cross-cutting** | Test coverage, mobile, blockers, estimate buffers |
+| **Verification** | Commands to run after implementation |
+
+Optional:
+- **Rollback** (only needed for high-risk / irreversible changes)
+- **Variation from source** (only when adapting an existing spec)
+
+## 3. Implementation Script Requirements
+
+Every implementation step MUST include:
+
+- [ ] Exact file path (relative to project root)
+- [ ] What changes (add, modify, delete, new file)
+- [ ] Code snippet or diff showing the change
+- [ ] **Non-negotiable VERIFY lines** — concrete grep/Read commands to prove the change exists:
+  - [ ] At least one `rg` / `Select-String` pattern to confirm the symbol is present post-change
+  - [ ] At least one `Read` or `cat` on a specific file:line to confirm content matches expected
+  - [ ] Test command with expected exit code (`npm test -- path`, `curl -s ... | jq`)
+
+**For steps defining backend models that will be consumed by a frontend:**
+
+- [ ] Include the frontend's actual TypeScript type for reference
+- [ ] Verify field-by-field: names match, nesting matches, optionality matches
+- [ ] Check the API client call for route format (path params vs query params)
+
+Format:
+```
+#### Step N: Description
+
+**File:** `relative/path/to/file.ts`
+
+```typescript
+// Before:
+...
+
+// After:
+...
+```
+
+**Verify:**
+```bash
+rg 'variant.*mobile-sheet' path/to/Component.tsx    # grep — symbol must exist
+```
+```bash
+Read path/to/config.ts L42-47                       # file:line — content must match
+```
+```bash
+npm test -- --reporter verbose path/to/test.test.ts  # test — exit code 0
+```
+
+### 3b. Concrete VERIFY Lines (non-negotiable)
+
+**Plan author owns the VERIFY commands.** The executing agent must run them verbatim — not invent, not approximate, not substitute "tests pass." Every step's VERIFY table is part of the plan contract. If the plan author omits it, the step is BLOCKED per `loop-engineering.mdc` § Plan VERIFY Contract.
+
+Every step must include a VERIFY table — not a bullet list, not a command block — in this exact format:
+
+```
+#### Step N.n — VERIFY
+
+| Claim | Command / Read | Pass when |
+|-------|---------------|-----------|
+| Mobile sheet variant exported | `rg 'variant.*mobile-sheet' path/to/Component.tsx` | Match on at least 1 line |
+| Schema tier rows match plan | `Read schema.md L42-47` | No duplicate tier rows |
+| Component mounts as child | `rg 'export function MobileFAB' src/components/` | Found in MobileFAB.tsx |
+| Config synced across 6 files | `rg 'JurisdictionConfig' src/config/ --count` | Count = 6 |
+| Auth test passes | `npx vitest run auth.test.ts` | Exit code 0 |
+```
+
+**Minimum:** at least 2 rows per step from distinct tools: `rg`, `Read`, `Glob`, scoped `vitest`/`sbt`, `curl`.
+
+#### Scala/SQL steps — mandatory VERIFY rows
+
+For any plan step touching `.scala` or `conf/sql/`, the VERIFY table must include (in addition to step-specific claims):
+
+| Claim | Command / Read | Pass when |
+|-------|---------------|-----------|
+| Stack lock | `Read build.sbt` L1 | `scalaVersion := "3.3.7"` |
+| Deps unchanged | `rg "libraryDependencies" build.sbt` | Only `AppDependencies` reference, no inline deps |
+| Migration number (if SQL) | `Read migration-registry.md` | Version matches `Next free version` |
+| No duplicate V (if SQL) | `Glob conf/sql/V*.sql` | Version prefix unique, exactly 1 `V{new}__` file |
+
+#### Forbidden substitutes
+
+The following do NOT count as VERIFY evidence and will cause the step to be **BLOCKED**:
+
+| Substitute | Why rejected |
+|------------|-------------|
+| `tsc --noEmit` alone | Proves no type error, not that the feature exists |
+| Whole-suite totals ("17 vitest + 6 sbt pass") | Can't distinguish which tests ran for this step |
+| Weak spec names ("spec file passes") | Must cite the exact spec file by path |
+| Tracking-doc ✅ ("marked done in status") | Status docs are output, not input evidence |
+| Visual inspection / "looks correct" | Must be a command output or file:line read |
+| Conversation memory / diff memory | Must be from **this session's** grep/Read |
+
+#### Good vs Bad
+
+| ❌ Bad (blocked) | ✅ Good (accepted) |
+|------------------|-------------------|
+| "Verify: mobile FAB works" | `rg 'variant.*mobile-sheet' DataReviewAssistantPanel.tsx` → line 142 |
+| "Verify: schema updated" | `Read schema.md L42-47` → no duplicate tier rows |
+| "Verify: tests pass" | `npx vitest run --reporter verbose mobile-fab.test.ts` → exit 0 |
+| "Verify: hook wired" | `rg 'useMobileSheet' src/hooks/` → found 3 matches |
+| "Verify: config synced" | `rg 'mobileSheet' src/config/ --count` → count = 4 |
+
+### 3c. Architecture Pivot (mandatory when implementation path changes)
+
+If the executing agent chooses a different approach than the plan's Implementation Script, the pivot is not informal — it must be recorded before the step is SHIPPED.
+
+Examples of pivot that require this section:
+- Wrapper component instead of in-file variant
+- New file instead of editing an existing return tree
+- Renamed symbol
+- Different API surface (hooks vs props vs context)
+- Dropped or combined steps
+
+#### Pivot Recording Template
+
+```
+#### PIVOT — Step N.n
+
+- **Planned:** [What the plan said to build — file, approach, symbol name]
+- **Shipped:** [What was actually built — file, approach, symbol name]
+- **Reason:** [Why the pivot was necessary — unsupported pattern, perf, cleaner API, etc.]
+- **VERIFY table amended:** [List changed rows — old claim → new claim]
+- **Stale-symbol check:** `rg "<old-symbol>"` → 0 matches (confirm dead code removed)
+```
+
+**Hard rule:** A step with a pivot that is not recorded in this format is NOT SHIPPED. The agent cannot mark a step ✅ if the plan still describes the original approach.
+
+### 3d. JSX Relocate Protocol (layout steps)
+
+For plan steps tagged **relocate**, **grid**, **wrap**, or **layout** (where JSX components move between parent elements without logic changes):
+
+| Phase | Agent must | Forbidden |
+|-------|------------|-----------|
+| **READ (inventory)** | `rg` every component name in the affected module; count pre-state mount occurrences | Skipping mount counts |
+| **PROPOSE** | List delete list (component, line) + insert list (component, target parent, line) | Vague "move card to grid" |
+| **TEST** | Delete first, then insert — never insert before confirming delete succeeded | Insert-then-delete (leaves duplicates) |
+| **VERIFY** | Mount-count table — every moved component's pre vs post count | tsc/vitest as sole evidence |
+
+#### Required VERIFY output for layout steps
+
+```
+### Step X.Y — VERIFY (layout)
+
+| Component | Pre count | Post count | Pass when | Pass |
+|-----------|-----------|------------|-----------|:----:|
+| FxReconciliationCard | 1 | 2 | exactly 1 | ❌ — remove duplicate at L1020 |
+| FXAdjustmentCard | 1 | 1 | exactly 1 | ✅ |
+| MobileFAB | 0 | 1 | exactly 1 | ✅ |
+```
+
+**Hard rule:** Post-state mount count greater than Pass-when is VERIFY ❌ — fix before next step, even if tsc and vitest pass. Duplicates from insert-before-delete are the most common layout failure.
+
+## 4. Estimate Rules
+
+- [ ] Every estimate includes a 20-30% buffer
+- [ ] Items with unknown scope are flagged with "(unknown scope — apply buffer)"
+- [ ] Estimates separated by risk tier:
+  | Risk | Buffer | Examples |
+  |------|--------|---------|
+  | Known (existing file, small change) | +0% | Adding a field, one-file change |
+  | Moderate (new file, well-understood) | +20% | New API client with existing config |
+  | Unknown (new feature, unclear scope) | +50% | New feature with type reconciliation needed |
+- [ ] Total estimate at bottom includes buffer calculation
+- [ ] **Effort realism check**: if total exceeds ~8d for a sprint, add a separate note recommending 20-30% buffer. Three medium-sized items can each carry unknown scope — don't assume they all land at estimate
+- [ ] **Response format audit adds time**: if a plan defines both backend and frontend types, add 0.5-1d for model reconciliation (field name mismatches, nesting differences, optionality)
+
+## 5. Review Comments Format
+
+#### Each claim must include a severity label (CRITICAL / HIGH / MEDIUM / LOW):
+
+| Severity | Meaning |
+|----------|---------|
+| CRITICAL | Wrong compliance results, data loss, or security breach |
+| HIGH | Feature broken, wrong behaviour, or blocked workflow |
+| MEDIUM | Missing feature, usability gap, or tech debt |
+| LOW | Cosmetic, nice-to-have, or documentation |
+
+### Ground-check table
+
+```
+| Claim | Severity | Verified? | Notes |
+|-------|:-------:|:---------:|-------|
+| `pipeline.ts:37` — groupByJurisdiction | LOW | ✅ | Confirmed |
+| `missing-file.ts` — someFunction | MEDIUM | ❌ | File does not exist — pre-requisite |
+| `existing-file.ts` — someFeature | MEDIUM | 🟡 | File exists but feature not implemented |
+| Response format mismatch: Scala model vs TS type | CRITICAL | ❌ | Frontend expects nested wrapper, plan proposes flat list |
+```
+
+### Items Resolved table
+
+```
+| Issue | Phase/Step | Resolved by |
+|-------|------------|-------------|
+| JV pool key contradiction | Phase A | getPoolKey now uses jvGroupId (aligned with findJVGroups) |
+```
+
+### Open Issues table
+
+```
+| # | Step | Issue | Impact | Action Needed |
+|---|------|-------|--------|---------------|
+| 1 | Step 2 | De Minimis safe harbour is single-year | May over-approve | Document in UI as "simplified check" |
+```
+
+## 6. Review Checklist
+
+Before marking a plan complete, verify:
+
+- [ ] Every file path ground-checked
+- [ ] Every code claim verified against source
+- [ ] Every step has at least one concrete VERIFY command (grep/Read line, not "tests pass")
+- [ ] Verification commands tested (does the referenced test file exist?)
+- [ ] **No step lacks a VERIFY line** — if a step says "Verify: —", reject the plan
+- [ ] Estimates include buffer
+- [ ] Response format audit done (Scala model ↔ TypeScript types match field-by-field)
+- [ ] Route URL format matches actual API client call (path params vs query params)
+- [ ] Cross-plan references verified (e.g. "item 5 in plan 011" actually exists)
+- [ ] Open Issues table is populated (minimum 1 issue — no plan is perfect)
+- [ ] Items Resolved table is populated
+- [ ] Every ground-check finding has a severity label (CRITICAL/HIGH/MEDIUM/LOW)
+- [ ] Cross-cutting section addresses test coverage and mobile
+- [ ] The plan passes the "could someone implement this without asking me questions?" test
+
+## 7. Agent Instructions
+
+### When executing a plan (agent or user):
+
+1. Follow [`loop-engineering.mdc`](loop-engineering.mdc) **per step** — READ → PROPOSE → TEST → VERIFY → REPEAT
+2. Do not mark a step or phase complete without a VERIFY evidence table from **this session's** grep/Read/Glob
+3. Print a checkpoint table before claiming phase done (see loop-engineering template)
+4. **If a plan step has no concrete VERIFY command (grep pattern, file:line read), the step is BLOCKED.** Do not implement it — flag the gap to the user and wait for VERIFY lines to be defined.
+
+### When creating a plan:
+
+1. First, do not write anything. Read the codebase. Check file paths. Verify claims.
+2. Write the plan with all required sections.
+3. **LLM provider check:** Verify no OpenAI references. Use `deepseek-v4-flash` at `https://api.deepseek.com` (paths `/chat/completions`, `/embeddings` — **no `/v1`**). See Section 9.
+4. Add a Review Comments section with ground-check findings, each with a severity label.
+5. The plan is not complete until it has at least one Open Issue.
+6. If the user finds an error in your plan, add it to Items Resolved, document what was wrong and the fix, and learn from it.
+
+### When auditing a plan from the user:
+
+1. Run every ground-check yourself — don't trust claimed findings until you've verified against the actual code
+2. For every `Test-Path` that returns False, note it in the ground-check table with severity
+3. For every TypeScript ↔ Scala type mismatch, note it as HIGH or CRITICAL
+4. Check the API client call pattern against the proposed route format
+5. Update the plan with corrections, then add each correction to Items Resolved with the fix applied
+
+## 8. Naming Convention
+
+```
+NNN-description.md
+```
+
+Where NNN is a zero-padded number (e.g. 012). Description is lowercase with hyphens.
+
+Plans live in `{{PLANS_PATH}}/` in the project repo.
+
+
+## 9. LLM Provider Standard
+
+> **Template: replace with your project's LLM/embedding provider(s).**
+
+| Use | Provider | URL | Model | Config keys |
+|-----|----------|-----|-------|-------------|
+| **Chat** | {{LLM_CHAT_PROVIDER}} | `{{LLM_CHAT_URL}}` | `{{LLM_CHAT_MODEL}}` | `{{LLM_CHAT_KEY_ENV}}` |
+| **Embeddings** | {{LLM_EMBED_PROVIDER}} | `{{LLM_EMBED_URL}}` | `{{LLM_EMBED_MODEL}}` | `{{LLM_EMBED_KEY_ENV}}` |
+
+**Rationale:** (document why this provider was chosen — cost, compliance, latency, model quality, data residency.)
+
+### Egress ACL
+
+| Provider | ACL entry | Plan |
+|----------|-----------|------|
+| {{LLM_CHAT_PROVIDER}} | `{{LLM_CHAT_ACL}}` | — |
+| {{LLM_EMBED_PROVIDER}} | `{{LLM_EMBED_ACL}}` | — |
+
+### Plan audit checklist
+
+- [ ] Chat URLs point to documented provider — no undocumented endpoints
+- [ ] Chat model matches standard
+- [ ] Embedding model matches standard
+- [ ] No hardcoded API keys in source code
+- [ ] Provider config keys match `{{LLM_CHAT_KEY_ENV}}` / `{{LLM_EMBED_KEY_ENV}}`
+
+### Common failures
+
+| Failure | How to catch | Fix |
+|---------|-------------|-----|
+| Referencing wrong provider | Grep for old provider URL | Replace with {{LLM_CHAT_PROVIDER}} / {{LLM_EMBED_PROVIDER}} |
+| Hardcoded API key | Grep for `apiKey` or `sk-` in source | Move to env var |
+| Missing embedding dimension migration | Check pgvector schema version | Migrate before deploy |

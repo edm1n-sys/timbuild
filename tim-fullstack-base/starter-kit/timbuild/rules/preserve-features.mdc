@@ -1,0 +1,33 @@
+---
+description: Never delete working code. Keep edits scoped and minimal.
+globs: 
+alwaysApply: true
+---
+
+# Preserve Features
+
+## Golden Rule
+
+**Never delete working code.** If existing code is functional, keep it.
+Refactor only when there is a clear, non-nice-to-have reason.
+
+## Safety Checks
+
+Before removing or rewriting any code:
+
+1. Is this code currently used? Check imports and call sites.
+2. Is this code tested? If so, the tests must still pass after your change.
+3. Is there a simpler approach that leaves the existing code in place?
+
+## Stub Endpoint Safety
+
+- Stub endpoints return **501 Not Implemented** — never fake a 200 success.
+- A stub returning `{"status":"saved"}` without persisting is silent data loss.
+- Always include a `"note"` field explaining the stub is non-production.
+
+## What This Means
+
+- Fix bugs with the smallest diff possible.
+- Add features by extending, not replacing.
+- If you must delete code, call it out in your summary and explain why.
+

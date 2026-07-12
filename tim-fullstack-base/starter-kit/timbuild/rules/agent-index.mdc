@@ -1,0 +1,41 @@
+# rules/agent-index.mdc
+
+> Layer 1 — auto-injected. Task type routing.
+
+## Task Types
+
+| Type | When | Layer 2 Read (in order) | Then |
+|---|---|---|---|
+| **A** | One-file bug, no renames | Target file + `agent_schema.md` if DB path | Fix → `npm test` |
+| **A-S** | One-file `.scala` or `conf/sql/` | **ALSO** Type D READ + [`scala-stack.mdc`](scala-stack.mdc) | Fix → `sbt compile` → `sbt test` |
+| **B** | Multi-file / unfamiliar domain | `outstanding-tasks.md` → `agent.md` → deep file → `AGENT_LEARNINGS.md` | [`loop-engineering.mdc`](loop-engineering.mdc) per step → test |
+| **C** | Terminology / naming | `agent_terminology.md` → `agent_schema.md` if DB | One concept; producers first |
+| **D** | Schema / migration | `agent_schema.md` → Scala repos / Flyway `conf/sql/` | No column renames without approval |
+| **F** | Hardening / predeploy | `HARDENING-GATES.md` → `agent_terminology.md` → `agent_schema.md` → `build-terms.md` | `plan-standards.mdc` ground-check → [`loop-engineering.mdc`](loop-engineering.mdc) |
+
+If unsure → type B. Hardening or ship-blocking work → type **F**. **Any `.scala` or `conf/sql/` file, even one-file → type A-S** (stack lock mandatory).
+
+## Layer 2 Files (must Read tool — not auto-loaded)
+
+| File | Purpose | When to Read |
+|---|---|---|
+| `agent.md` | Project overview, architecture, file map | Type B |
+| `agent_terminology.md` | Extended glossary, hardening flags, naming conventions | Type C, Type F |
+| `agent_schema.md` | DB tables, RLS, routes, tenant boundaries | Type D, Type F |
+| `migration-registry.md` | Flyway version ladder, next V#, duplicate check | Type D, Type A-S, any `conf/sql/` |
+| `build-terms.md` | Route wiring terms, drift checks, verify loop | Type F, infra audits |
+| `scala-stack.mdc` | Scala version, deps, DI, import surface lock | Type A-S, Type D, any `.scala` |
+| `loop-engineering.mdc` | READ → PROPOSE → TEST → VERIFY per plan step | Type B, F, any multi-step plan |
+| `AGENT_LEARNINGS.md` | Mistakes log, lessons learned | Type B |
+| `HARDENING-GATES.md` | Security gates, owner gates, deploy checklist | Type F, before deploy |
+| `{{AUDIT_PATH}}/*.md` | Audit docs — coverage maps, config matrices | Type F (when audit files exist) |
+
+## Verification
+
+After any edit:
+1. Per plan step: [`loop-engineering.mdc`](loop-engineering.mdc) § Plan VERIFY Contract — run the plan's VERIFY table verbatim; evidence must map 1:1 to plan rows; do not substitute tsc/vitest totals/grep counts for per-claim proof. If no VERIFY table exists, BLOCKED.
+2. `npx tsc --noEmit --skipLibCheck`
+3. `npx vitest run`
+4. `sbt compile` (if backend files touched)
+5. `sbt test` (if backend logic changed)
+6. `npm run build` (before committing)

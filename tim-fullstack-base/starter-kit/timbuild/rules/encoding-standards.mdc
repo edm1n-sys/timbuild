@@ -1,0 +1,82 @@
+---
+description: Universal source file text encoding contracts and terminal stream boundaries
+globs: "src/**/*, prisma/**/*, coding-rules/**/*, rules/**/*, templates/**/*, *.json, *.md, *.mdc, **/*.scala, **/*.sc"
+alwaysApply: true
+---
+# File Encoding Standard (Terminal & Tooling Contract)
+
+To prevent character corruption, compilation anomalies, and syntax tool failures across terminal runtimes, all text-based files created, appended, or modified must adhere to this absolute encoding standard.
+
+## 1. Core Encoding Requirements
+* **Enforced Format:** **UTF-8 without BOM** (Byte Order Mark).
+* **Explicit Runtime Definition:** Equivalent to programmatic ```System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false)```.
+* **Strictly Prohibited Formats:** UTF-8 with BOM, UTF-16, ANSI/Windows-1252, ISO-8859, or legacy regional encodings.
+
+## 2. Automated Pre-Commit Verification Loop
+Before signaling code readiness to the human or executing a staging phase, you must run an automated check to verify that changed files conform to this policy:
+
+1. Identify files modified during the active session.
+2. Ensure no Byte Order Mark sequences (```EF BB BF```) are prepended to the stream data.
+3. If an automated script check is configured in the environment, run it to evaluate compliance:
+
+```powershell
+# Windows PowerShell verification pattern example for changed files
+Get-Content -Path "path/to/changed/file" -Encoding utf8NoBOM
+```
+
+## 3. Strict Scope Exceptions
+* **Exempt Extensions:** This rule applies exclusively to text-based code configuration files. Binary assets (such as .png, .jpg, .ico, .webp, or custom compiled font objects) are entirely exempt from text parsing rules.
+
+## 4. PowerShell 5.1 Encoding Trap (Windows)
+
+PowerShell 5.1 defaults are dangerous: `Set-Content` often writes Windows-1252, `Out-File` / `>` writes UTF-16LE, and even `-Encoding UTF8` on write **still prepends a UTF-8 BOM** (`EF BB BF`). This breaks agent reads, `Get-Content` search, and cross-platform git tooling.
+
+### Detection
+
+```powershell
+Format-Hex .\file.md | Select-Object -First 1
+```
+
+| First bytes | Meaning |
+|-------------|---------|
+| `FF FE` | UTF-16LE -> must convert |
+| `EF BB BF` | UTF-8 with BOM -> should strip |
+| Anything else | UTF-8 without BOM -> correct |
+
+### Safe patterns per PowerShell version
+
+#### PS 5.1 (Windows PowerShell)
+
+| Operation | Safe pattern |
+|-----------|-------------|
+| **Read** (works with or without BOM) | ```powershell
+Get-Content .\file.md -Encoding UTF8
+``` |
+| **Write** (no BOM) | ```powershell
+[System.IO.File]::WriteAllText(
+    'path\to\file.md',
+    [System.IO.File]::ReadAllText('path\to\file.md'),
+    [System.Text.UTF8Encoding]::new($false)
+)
+``` |
+
+#### PS 7+ (PowerShell Core)
+
+| Operation | Safe pattern |
+|-----------|-------------|
+| **Write** (no BOM) | ```powershell
+Set-Content -Path .\file.md -Value $text -Encoding utf8NoBOM
+``` |
+
+### Traps to avoid
+
+| Command | What it actually does |
+|---------|----------------------|
+| `Set-Content -Encoding Unicode` | UTF-16LE (breaks everything) |
+| `Out-File -Encoding utf8` | UTF-8 WITH BOM on PS 5.1 (breaks git diff, agent parsing) |
+| `> .\file.md` | UTF-16LE on PS 5.1 |
+| `Set-Content` (no `-Encoding`) | Windows-1252 on PS 5.1, UTF-8 no BOM on PS 7+ |
+
+### Universal rule
+
+Prefer `[System.IO.File]::WriteAllText` with `[System.Text.UTF8Encoding]::new($false)` for any cross-version script. It is the only write method that guarantees **UTF-8 without BOM** on every PowerShell version from 5.1 through 7.x.

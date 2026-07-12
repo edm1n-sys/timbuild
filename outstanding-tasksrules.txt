@@ -1,0 +1,81 @@
+create an outstanding-tasks.md in same folder. To keep it lightweight and fast for the AI to read, the log should include exactly four core elements per entry.
+
+What outstanding-tasks.md Should Include
+
+Timestamp & Agent Name: Who did the work and when (e.g., ## [2026-07-02 09:45] - Agent: Claude-3.5).
+
+The Intent (What changed): A one-sentence summary of the feature added or bug fixed.
+
+The State (Files modified): A punchy bulleted list of the exact files touched.
+
+The Handoff (Next step): Explicit instructions on what the next agent should do.
+
+
+ outstanding-tasks.md Template
+
+Copy and paste this exact template into your project root. Keep the most recent entries at the top of the file so the AI sees them first without scrolling through massive history. [1]
+
+markdown
+
+# Project Activity Log
+
+## [YYYY-MM-DD HH:MM] - Agent: [Agent Name]
+
+- **Task Completed:** [One sentence summarizing the goal achieved]
+
+- **Files Modified:** 
+
+  - `path/to/file1.ext` (Brief note on change)
+
+  - `path/to/file2.ext`
+
+- **Current State:** [Briefly note if the app is currently running, broken, or needs testing]
+
+- **Next Step / Handoff:** [Direct instruction for the next agent]
+
+---
+
+
+Real-World Example
+
+Here is how the file would actually look using the compound-interest calculator example from your initial thread:
+
+markdown
+
+# Project Activity Log
+
+## [2026-07-02 09:45] - Agent: Claude-3.5
+
+- **Task Completed:** Added a year-by-year compound interest data table to the UI.
+
+- **Files Modified:** 
+
+  - `src/components/Calculator.jsx` (Added the rendering logic for rows)
+
+  - `src/styles/global.css` (Added basic padding for the new table)
+
+- **Current State:** The application compiles successfully. The table populates data correctly but looks flat.
+
+- **Next Step / Handoff:** @agent, please read the new table data from `Calculator.jsx` and generate a visual canvas growth chart directly underneath it.
+
+---
+
+## [2026-07-02 09:10] - Agent:
+
+- **Task Completed:** Created the core mathematical formula functions for compound interest.
+
+- **Files Modified:**
+
+  - `src/utils/mathHelpers.js` (Created `calculateInterest()` function)
+
+- **Current State:** Core logic is complete and unit tests pass. No UI exists yet.
+
+- **Next Step / Handoff:** agent, please build a front-end form to accept user inputs and pass them to the math helpers.
+
+
+Pro-Tip for Your AI System Instructions
+
+To make this work flawlessly, add this exact rule to your agent system prompts (like your system instructions): [1]
+
+"CRITICAL PROTOCOL: Before executing any code changes, you MUST read the top entry of outstanding-tasks.md to understand current state. Immediately after completing your task, you MUST append a new entry to the top of outstanding-tasks.md following the established markdown template. Do not skip this step."
+ 

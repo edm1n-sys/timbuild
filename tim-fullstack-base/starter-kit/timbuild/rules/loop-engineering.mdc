@@ -1,0 +1,243 @@
+# Loop Engineering — Mandatory Execution Protocol
+
+> **When:** Every plan step, every sprint task batch, every “mark ✅” claim.  
+> **Parent:** [`execution-principles.mdc`](execution-principles.mdc) rule 17 · [`coding-skills.md`](coding-skills.md) Phase 3b  
+> **Lesson:** Agents must not mark steps complete from memory — ground-check with Read/Grep/Glob each session ([`AGENT_LEARNINGS.md`](AGENT_LEARNINGS.md) #8).
+
+---
+
+## The loop (per plan step — do not batch)
+
+```
+READ → PROPOSE → TEST → VERIFY → REPEAT (until VERIFY all ✅)
+```
+
+| Phase | Agent must | Forbidden |
+|-------|------------|-----------|
+| **READ** | Read plan step; Read target file; Grep pre-state (symbol missing/present); Glob test paths | Coding before READ block written |
+| **PROPOSE** | List exact files, symbols, before/after; cite verify command from plan | Vague “will implement X” |
+| **TEST** | Implement **only this step**; run step verify command | Implementing N+1 while N unverified |
+| **VERIFY** | Re-read/grep post-state; evidence table; paste test exit codes | ✅ from diff memory or prior turn |
+| **REPEAT** | Fix gaps; re-VERIFY | Advance to next step with ❌ rows |
+
+**Hard rule:** No step is **SHIPPED** until VERIFY evidence table is all ✅.  
+**Hard rule:** No phase is **complete** while any step lacks SHIPPED + evidence.  
+**Hard rule:** If a plan step has no concrete VERIFY command (grep pattern, file:line read, test with expected exit code), the step is **BLOCKED**. Do not implement steps with missing VERIFY lines — flag them to the user first.
+
+---
+
+## Plan VERIFY Contract
+
+The plan is a contract. Every step's VERIFY table defines what "done" means.
+
+1. **Run the plan table verbatim.** Every command in the plan's `| Claim | Command / Read | Pass when |` table must be executed, with output pasted into the evidence column.
+2. **VERIFY output maps 1:1 to plan rows.** If the plan lists 4 claims, your VERIFY table must have exactly those 4 rows with their commands — no more, no fewer.
+3. **Stop if the plan has no VERIFY table.** If a plan step says "Verify: tests pass" or has no `| Claim | Command | Pass when |` table, the step is **BLOCKED**. Flag it. Do not compensate by inventing your own verification — the plan author owns the contract.
+4. **Any ❌ = NOT SHIPPED.** A single ❌ row means the step reverts to TEST → fix → re-VERIFY. Do not ship ❌ rows by writing "deferred — follow-up ticket" — that requires the user's explicit approval in the plan's Open Issues.
+5. **Amendment gate — plan-drift forbidden.** If implementation diverges from the plan (new file not listed, symbol renamed, different approach, dropped step), the agent must **STOP** — not adapt silently. Update the plan's §Implementation and VERIFY tables to match the new design, then resume the loop. **Forbidden:** ship code that implements Option B while the plan still describes Option A. The plan is the contract — if reality diverges, amend the contract first, then verify against the amended contract.
+
+---
+
+## Architecture Pivot Gate
+
+When implementation differs from the plan's target files, symbols, or approach (see `plan-standards.mdc` §3c):
+
+| Phase | Agent must | Forbidden |
+|-------|------------|-----------|
+| **DETECT** | Recognize pivot before marking TEST complete | Shipping wrapper while plan still says inline variant |
+| **AMEND** | Update plan step VERIFY table + record pivot in same session | SHIPPED with stale rg patterns from original plan |
+| **CLEAN** | Remove obsolete tests/code paths for abandoned approach | Leaving `expect(true)` placeholders in old test file |
+| **VERIFY** | Re-run amended table only | Claiming ✅ on pre-pivot VERIFY rows |
+
+**Checkpoint rule:** If shipped code references symbol B but plan VERIFY references symbol A, checkpoint shows VERIFY ❌ until plan or code is reconciled — not SHIPPED.
+
+#### Required output when pivoting
+
+```markdown
+### Step X.Y — PIVOT
+- Planned: …
+- Shipped: …
+- Reason: …
+- VERIFY table amended: (list changed rows)
+- Stale-symbol check: `rg "old-symbol"` → 0 matches
+```
+
+---
+
+## JSX Relocate Protocol (layout steps)
+
+For plan steps tagged **relocate, grid, wrap,** or **layout** (see `plan-standards.mdc` §3d):
+
+```
+READ (inventory) → PROPOSE (delete list + insert list) → TEST (delete then insert) → VERIFY (mount counts) → REPEAT
+```
+
+| Phase | Agent must | Forbidden |
+|-------|------------|-----------|
+| **READ** | `rg` every component; count pre-state mount occurrences | Skipping mount counts |
+| **PROPOSE** | Delete list (component, line) + insert list (component, target, line) | Vague "move card to grid" |
+| **TEST** | Delete first, then insert | Insert-then-delete (leaves duplicates) |
+| **VERIFY** | Mount-count table — pre vs post per component | tsc/vitest as sole evidence |
+
+#### Required VERIFY output for layout steps
+
+```markdown
+### Step X.Y — VERIFY (layout)
+| Component | Pre count | Post count | Pass when | Pass |
+|-----------|-----------|------------|-----------|:----:|
+| FxReconciliationCard | 1 | 2 | exactly 1 | ❌ — remove duplicate at L1020 |
+| MobileFAB | 0 | 1 | exactly 1 | ✅ |
+```
+
+**Hard rule:** Post-state mount count greater than Pass-when is VERIFY ❌ — fix before next step, even if tsc and vitest pass.
+
+---
+
+## Worked Example: Merged Steps on One File
+
+> **Principle:** Don't skip verification — skip the intermediate file state. When two plan steps touch the same file, run READ for both together, PROPOSE a single merged diff, TEST once, then VERIFY each step's claims against the SAME final file. Mark both SHIPPED in one turn only after BOTH VERIFY tables are all ✅.
+
+### Phase A — READ (both steps, pre-state together)
+
+```
+rg '<DataReviewAssistantPanel'  → 1 match  (L1014)
+rg 'Cp1MobileAssistantSheet'    → 0 matches (not yet created)
+```
+
+**Findings:**
+- `postComputeCtx` exists at L638–641 but not threaded through `buildPostComputeOpeningMessage`
+- `<DataReviewAssistantPanel>` duplicated at L1014–1025 (same component, two sites)
+- No `Cp1MobileAssistantSheet` import or mount anywhere
+
+### Phase B — PROPOSE (single merged diff)
+
+| Change | Files | Detail |
+|--------|-------|--------|
+| Refactor L638–641 | `DataReviewRoute.tsx` | Pass `postComputeCtx` + `assistantVisible` into return tree |
+| Add `isDesktop` + `resultsAssistantProps` | `DataReviewRoute.tsx` | Desktop panel: pass props to `<DataReviewAssistantPanel>` |
+| DELETE L1014–1025 | `DataReviewRoute.tsx` | Remove duplicate `<DataReviewAssistantPanel>` mount |
+| INSERT mobile sheet | `DataReviewRoute.tsx` | `<Cp1MobileAssistantSheet>` mirroring `DataUploadRoute` L687–695 |
+
+### Phase C — TEST (one implementation pass)
+
+Single edit: `DataReviewRoute.tsx` — delete duplicate, add `isDesktop` conditional, insert `<Cp1MobileAssistantSheet>`.
+
+### Phase D — VERIFY Step 1 table
+
+| Claim | Command / Read | Pass when | Pass |
+|-------|---------------|-----------|:----:|
+| `postComputeCtx` threaded | `rg 'postComputeCtx' DataReviewRoute.tsx` | ≥2 uses, 1 declaration | ✅ |
+| `buildPostComputeContext` called | `rg 'buildPostComputeContext\(' DataReviewRoute.tsx` | exactly 1 call | ✅ |
+| `buildPostComputeOpeningMessage` receives ctx | `rg 'buildPostComputeOpeningMessage\(postComputeCtx' DataReviewRoute.tsx` | ≥1 | ✅ |
+
+### Phase D — VERIFY Step 2 table
+
+| Claim | Command / Read | Pass when | Pass |
+|-------|---------------|-----------|:----:|
+| `<DataReviewAssistantPanel>` single mount | `rg '<DataReviewAssistantPanel' DataReviewRoute.tsx` | exactly 1 direct mount | ✅ |
+| `Cp1MobileAssistantSheet` imported + mounted | `rg 'Cp1MobileAssistantSheet' DataReviewRoute.tsx` | import + mount | ✅ |
+| `isDesktop` conditional gating | `rg 'isDesktop' DataReviewRoute.tsx` | ≥2 conditionals | ✅ |
+| `variant="mobile-sheet"` gone | `rg 'variant.*mobile-sheet' DataReviewRoute.tsx` | 0 matches | ✅ |
+
+### Phase E — Checkpoint
+
+```
+## Checkpoint — Phase N
+| Step | READ | PROPOSE | TEST | VERIFY | Status |
+|------|:----:|:-------:|:----:|:------:|:--------|
+| N.1 | ✅ | ✅ | ✅ | ✅ | SHIPPED |
+| N.2 | ✅ | ✅ | ✅ | ✅ | SHIPPED |
+```
+
+Both steps SHIPPED in one turn — evidence per claim per step, zero intermediate commits.
+
+---
+
+## Required output template (copy per step)
+
+```markdown
+### Step X.Y — READ
+- Plan requires: …
+- Pre-state: … (file:line or “symbol absent”)
+- Test file: … (path or MISSING)
+
+### Step X.Y — PROPOSE
+- Files: …
+- Change: …
+- Verify: `command`
+
+### Step X.Y — TEST
+- (commands run + exit codes)
+
+### Step X.Y — VERIFY
+| Claim | Evidence | Pass |
+|-------|----------|:----:|
+| … | rg / Read line | ✅/❌ |
+```
+
+---
+
+## Checkpoint table (after every step)
+
+```markdown
+## Checkpoint — Phase N
+| Step | READ | PROPOSE | TEST | VERIFY | Status |
+|------|:----:|:-------:|:----:|:------:|:--------|
+| N.1 | ✅ | ✅ | ✅ | ✅ | SHIPPED |
+| N.2 | ✅ | ✅ | ✅ | ❌ | IN PROGRESS — … |
+| N.3 | — | — | — | — | NOT STARTED |
+```
+
+**Forbidden until checkpoint shows all steps SHIPPED:**
+- “Phase complete”
+- “All tests green” (without per-step evidence)
+- “Ready for next phase”
+
+---
+
+## Definition of Done (step)
+
+1. READ documented with pre-state grep/Read proof  
+2. Code matches plan — post-state grep proves symbols + wiring  
+3. Plan-listed tests **exist on disk** and pass (or logged in Open Issues as deferred)  
+4. VERIFY table all ✅  
+5. `outstanding-tasks.md` top entry updated with verify commands + counts  
+
+## Definition of Done (phase)
+
+All steps SHIPPED **plus** phase verify block once:
+
+```bash
+npx tsc --noEmit
+npx vitest run <scoped>
+sbt "testOnly <scoped>"   # when Scala touched
+```
+
+---
+
+## Anti-patterns
+
+| Anti-pattern | VERIFY catch |
+|--------------|--------------|
+| Status ✅ from conversation memory | `rg` / `Glob` in **this** session |
+| “17 vitest + 6 sbt” but spec file missing | `Glob **/*Spec*` for named spec |
+| Consolidation step without new module | `Glob **/module-name.ts` |
+| Docs "done" with stale gate rows | Read full gate block in `agent_schema.md` |
+| Skip to next phase with open VERIFY ❌ | Checkpoint blocks advance |
+| **“Hook + mount = mobile done”** | Plan splits UX from logic — verify BOTH exist: `rg 'variant.*mobile-sheet'` AND `rg 'export function MobileFAB'` |
+| **Multi-plan merge mixes done bars** | Each plan has its own checkpoint; never collapse 053 security + 052-B perf into one ✅ |
+| **Checkpoint labels diverge across runs** | Lock column names: step N.n uses the plan's own step ID, not "hook" vs "mobile UX" |
+| **Optional step labeled done** | If plan says "optional: chat-access.ts", verify it was marked SKIPPED, not silently omitted and claimed done |
+| **scrollToEntity discussed but unverified** | Thread discussions are not VERIFY rows — if it's in the plan, it needs a grep/Read row |
+| **Tracks only files, not wiring** | `rg` the route/handler/adapter registration — a file existing ≠ it being wired |
+| **Implementation diverges from plan silently** | Diff the plan's §Implementation list against actual files touched; if they don't match, amendment gate triggered |
+
+---
+
+## Cross-references
+
+| Doc | Role |
+|-----|------|
+| [`plan-standards.mdc`](plan-standards.mdc) | Plan **authoring** ground-check |
+| [`build-terms.md`](build-terms.md) | Pre-staging drift loop (end of sprint) |
+| [`outstanding-tasks.md`](../outstanding-tasks.md) | Handoff + checkpoint snapshot |

@@ -1,0 +1,52 @@
+{
+  "name": "starter-kit",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Tim fullstack starter kit — TanStack Start, Better Auth, Prisma, pg-boss, shadcn",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "biome check --write",
+    "test": "vitest run",
+    "test:arch": "vitest run __tests__/architecture.test.ts",
+    "test:watch": "vitest",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:diff": "prisma migrate diff --from-schema-dataprovider=prisma/schema.prisma --to-schema-datasource=prisma/schema.prisma --exit-code",
+    "verify": "npm run typecheck && npm run test:arch && npm run db:diff"
+  },
+  "dependencies": {
+    "@tanstack/react-router": "^1.114.0",
+    "@tanstack/react-start": "^1.114.0",
+    "@tanstack/react-query": "^5.75.0",
+    "better-auth": "^1.2.0",
+    "pg-boss": "^11.0.0",
+    "@prisma/client": "^6.6.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.0.2",
+    "lucide-react": "^0.469.0",
+    "zod": "^4.4.0",
+    "@stripe/stripe-js": "^5.10.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.1",
+    "tailwindcss": "^4.1.1",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "typescript": "~5.8.0",
+    "vite": "^6.3.0",
+    "prisma": "^6.6.0",
+    "eslint": "^8.57.0",
+    "vitest": "^4.1.0",
+    "ts-morph": "^25.0.0",
+    "@biomejs/biome": "^1.9.0"
+  }
+}

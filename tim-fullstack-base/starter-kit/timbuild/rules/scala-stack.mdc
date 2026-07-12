@@ -1,0 +1,48 @@
+---
+description: Scala stack lock — language version, dependencies, import surface
+globs: "**/*.scala, **/build.sbt, **/AppDependencies.scala, **/conf/sql/*.sql"
+alwaysApply: true
+---
+# Scala Stack Lock (read before any .scala / build / migration change)
+
+## Language & Runtime
+
+- **Scala 3.3.7 only.** Forbidden: Scala 2 syntax (`implicit def`, `implicit val`, `withDefault` macros), Akka imports (`akka.*`), Play 2 patterns (`play.api.libs.concurrent.Execution.Implicits`).
+- **Play 3.x / Pekko.** All imports: `org.playframework` / `org.apache.pekko`. Never: `com.typesafe.play`, `akka.*`.
+- **Export vs type alias:** Use `export` for re-exporting members, not `type alias` forwarding. See `AGENT_LEARNINGS.md` Scala 3 export lesson.
+
+## Dependency Surface
+
+- **Dependencies only in `project/AppDependencies.scala`.** Never add `libraryDependencies` inline in `build.sbt`.
+- Adding a new dependency requires plan approval — not a silent decision during implementation.
+
+## DI & JSON
+
+- **DI:** `@Inject`, `given`/`using` — no implicit def chains for wiring.
+- **JSON:** `play.api.libs.json` only. No `circe` / `json4s` unless explicitly added to `AppDependencies.scala` with plan approval.
+
+## Before Editing .scala
+
+Run this READ block before proposing any backend change:
+
+```
+### READ — stack lock
+- build.sbt: scalaVersion = ?
+- AppDependencies.scala: play/pekko versions = ?
+- migration-registry: next V# = ? (if SQL touched)
+- Glob conf/sql/V*.sql: duplicate prefixes = ? (if migration)
+- agent_schema.md gate: RLS required? workspace scope?
+```
+
+## After Editing .scala
+
+1. `sbt compile` — mandatory. Self-correct up to 3x.
+2. `sbt test` — if logic changed.
+3. `sbt scalafmtCheckAll` — if formatter configured.
+
+## Migration Lock (if conf/sql/ touched)
+
+1. Read `migration-registry.md` — confirm next free version number.
+2. No duplicate Flyway version prefixes — `Glob conf/sql/V*.sql` → unique prefixes.
+3. Update `migration-registry.md` in same commit as new migration.
+4. RLS policy check + `SecureDbContext` per `agent_schema.md`.

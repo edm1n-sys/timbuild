@@ -1,0 +1,29 @@
+---
+description: Canonical glossary for this project. Every edit must use the Always Use column. Never invent synonyms.
+globs: 
+alwaysApply: true
+---
+
+# Project Terminology
+
+**GATE:** This file is STABLE REFERENCE. Add rows only when introducing a genuinely new concept. Never append session notes, term dumps, or activity summaries here. Session discoveries → `AGENT_LEARNINGS.md`.
+
+| Concept | Always Use | Never Use |
+|---------|-----------|-----------|
+| Project | {{PROJECT_NAME}} | old names |
+| User identity | `user` | account, member |
+| Auth library | `better-auth` | auth, next-auth, clerk |
+| Database ORM | `Prisma` | typeorm, drizzle |
+| Background jobs | `pg-boss` | bull, agenda, bee-queue |
+| UI framework | `shadcn/ui` | chakra, mui, antd |
+| App framework | `TanStack Start` | next, remix, vite-only |
+| CSS framework | `Tailwind CSS v4` | tailwind v3, windi |
+| Payments | `Stripe` | paddle, lemonsqueezy |
+
+## Rules
+
+1. Add a new row **before** introducing a new identifier.
+2. Never use a synonym for a concept that already has a row.
+3. Fix producers (config, schema, types) before consumers (components, routes).
+4. No database column renames without human approval.
+5. **Never append session notes here.** Stable reference only.

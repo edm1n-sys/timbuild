@@ -1,0 +1,18 @@
+﻿# rules/memory.mdc
+
+> Layer 1 -- auto-injected. Pointers only -- no test counts, open items, or session history.
+
+## This Project
+
+<!-- Replace with your project description -->
+{{PROJECT_NAME}} -- {{STACK_DESCRIPTION}}. {{KEY_DOMAINS}}.
+
+## Read first
+
+| Need | File |
+|------|------|
+| Current state, tests, handoff | `outstanding-tasks.md` (top entry) |
+| Session routing | `agent.md` |
+| Before writing new findings | Gate docs in `agent_terminology.md`, `agent_schema.md`, `build-terms.md` -- see `execution-principles.mdc` rule 13 |
+| Task types | `agent-index.mdc` |
+| Per-step execution loop | `loop-engineering.mdc` |

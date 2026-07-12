@@ -1,0 +1,169 @@
+﻿================================================================================
+HOW TO USE THE SCAFFOLD
+================================================================================
+
+Full guide:  {{Timbuild_PATH}}\new_project_scaffold.md
+This file:   Cheat sheet + copy-paste blocks. [NEW PROJECT] = current repo.
+
+================================================================================
+TWO LAYERS — memorize
+================================================================================
+
+Layer 1 — AUTO-INJECTED every chat (read all; never skip):
+  project-terminology.mdc | terminology-fix-mode.mdc | preserve-features.mdc
+  execution-principles.mdc | encoding-standards.mdc | memory.mdc
+  agent-index.mdc
+
+Layer 2 — ON-DEMAND (Read tool or @-mention):
+  agent.md | agent_terminology.md | agent_schema.md | build-terms.md
+  agent_<domain>.md | AGENT_LEARNINGS.md
+
+.mdc files are NOT AI-agent-specific metadata — they apply to ALL coding agents.
+Not auto-injected? Read Layer 1 files manually before starting.
+
+================================================================================
+PROVEN PATTERNS
+================================================================================
+
+P1 — TERMINOLOGY SYSTEM
+  3 files; format: | Concept | Always use | Never use |
+  Add row before using new identifier. Fix producers first. Grep after rename.
+  No DB column renames without approval.
+
+P2 — PLAN STANDARDS
+  Required: Why, What If Not, Cross-ref audit, Implementation, Review, Open
+  Issues (min 1), Cross-cutting, Verification. Severity: CRITICAL/HIGH/MED/LOW.
+  Estimates: Known +0%, Moderate +20%, Unknown +50%.
+
+P3 — EXECUTION PRINCIPLES
+  Ask before build. Read before edit. Verify after write. Test after change
+  batch. One change per edit call. Exact string match for edits (not regex).
+  Docs follow code.
+
+P4 — CODING SKILLS
+  Config in 4+ places → audit all. Use === not .contains(). structuredClone()
+  for deep copy. Required field on shared interface → find ALL construction
+  sites. Log mistakes to AGENT_LEARNINGS.md.
+
+P5 — BUILD TERMS
+  Route wired = composition present. Bare = none. Tenant-scoped = tenantId
+  filter. Stub = 501, never fake 200. Validated = Zod. Hardened = checklist
+  complete.
+
+P6 — DRIFT DETECTION (pre-commit)
+  Compile: 0. Typecheck: 0. Tests: all pass. No cross-module imports without
+  shared/ path. Config valid. Lint passes.
+
+P7 — HARDENING DOCS
+  <name>-000-index.md → <name>.md → <name>-tracking.md.
+  Per finding: <name>-NNN-<topic>.md.
+
+P8 — NEW FEATURE (thin adapter over shared engine)
+  1. Config JSON → 2. Registry → 3. Thin adapter → 4. Routes → 5. Migration
+  → 6. Docs. Never fork shared engine. Never hardcode feature checks in
+  shared code — use config flags.
+
+P9 — LLM PROVIDER
+  Chat: {{LLM_CHAT_PROVIDER}} ({{LLM_CHAT_URL}}).
+  Embedding: {{LLM_EMBED_PROVIDER}}. Document per plan-standards.mdc §9.
+
+P10 — SESSION MEMORY
+  ## This Project | ## Key Files | ## Critical Rules | ## Open Items
+  Update each session with test counts.
+
+P11 — ACTIVITY LOG
+  Create outstanding-tasks.md. Per entry: timestamp, task, files, handoff.
+  Newest on top. Read top before edit; append after task batch.
+
+P12 — AGENTS.md
+  System Intent, Core Principles, Discovered Architecture, Pre-Coding Mandate.
+  End-of-session: scan changes → update docs → output sync report.
+
+P13 — ONE-DRIVE BACKUP
+  WARNING: Working project OUTSIDE OneDrive (e.g. C:\Projects\). Only bare
+  mirror inside OneDrive. Never init .git inside OneDrive — OneDrive syncing
+  .git files causes corruption.
+  Setup: agent creates bare repo at {{BACKUP_PATH}}\{{name}}.git once.
+  Push: HUMAN runs at session close. Agent appends git push command + commit
+  message. If no changes: "nothing to push."
+
+P14 — SPEC-DRIVEN DEV
+  3 phases: Interview → Plan → Execute. Zero code before plan approved.
+
+P15 — STUB SAFETY
+  501 Not Implemented. Never fake 200 — a stub returning {"status":"saved"}
+  without persisting = silent data loss. Include "note" field explaining stub.
+
+================================================================================
+TASK TYPES A-E
+================================================================================
+
+Type  When                     Read (in order)                    Then
+----  ----                     ----------------                   ----
+A     One-file bug             target + agent_<domain>.md         fix → test
+B     Multi-file/unfamiliar    agent.md → deep file → MEMORY      plan → edit → test
+C     Terminology/naming       agent_terminology.md → schema      producers first
+D     Schema/migration         agent_schema.md → models           no renames w/o ok
+E     Core domain logic        agent_<domain>.md + changed files  follow invariants
+
+If unsure → type B.
+
+================================================================================
+COPY-PASTE BLOCKS — replace {{...}} and [NEW PROJECT]
+================================================================================
+
+--- BOOTSTRAP ---
+1. Ask for 8 values: PROJECT_NAME, DOMAIN, DOMAIN_TITLE, DOMAIN_GLOBS,
+   MODELS_PATH, SHIMS_PATH, TEST_CMD, ARCH_DOC
+2. Scan repo → draft project-terminology.mdc → confirm → write
+3. Create outstanding-tasks.md with bootstrap entry
+4. Create execution-principles.mdc with activity-log rule
+5. Sync agent-index.mdc
+6. Commit only if asked
+
+--- GLOSSARY DISCOVERY ---
+1. Scan models/source — list identifier pairs meaning same thing. Propose
+   canonical name per pair.
+2. Draft: project-terminology.mdc (≤15 rows), agent_terminology.md (overflow),
+   agent_schema.md (tables/columns if DB)
+3. Confirm ambiguous rows before writing. No app code changes.
+
+--- SPEC INTERVIEW (Phase 1) ---
+Interview me with deep, non-obvious questions about implementation, data model,
+edge cases, tradeoffs. One question at a time. No code. Output: SPEC.md.
+
+--- PLAN FROM SPEC (Phase 2) ---
+Read SPEC.md. Scan codebase. Produce PLAN.md with files, order, verification.
+Wait for approval before writing code.
+
+--- END-OF-SESSION SYNC ---
+Scan changed files. Update architecture docs. Output OneDrive push command.
+
+--- ONE-DRIVE BACKUP SETUP ---
+  cd {{BACKUP_PATH}}
+  git init --bare {{projectname}}.git
+  cd '{{PROJECT_PATH}}'
+  git init && git add . && git commit -m "initial backup"
+  git branch -M main
+  git remote add onedrive {{BACKUP_PATH}}\{{projectname}}.git
+  git push onedrive main
+  # Working project must be OUTSIDE OneDrive. Bare mirror only inside.
+  # Do not re-init if .git already exists.
+
+--- TERMINOLOGY FIX (type C) ---
+Obey project-terminology.mdc. Read: agent_terminology.md → agent_schema.md
+(if DB) → {{SHIMS_PATH}}. Fix producers first. No DB renames w/o approval.
+
+--- ADD GLOSSARY ROW ---
+Propose: Concept | Always use | Never use — with evidence from repo.
+Add to project-terminology.mdc AND agent_terminology.md. If DB column: also
+agent_schema.md + approval.
+
+================================================================================
+EXISTING REPO HAS Timbuild/?
+================================================================================
+No bootstrap. Use Layer 1 + @ Layer 2 file. Glossary applies only to THIS repo.
+
+================================================================================
+END
+================================================================================

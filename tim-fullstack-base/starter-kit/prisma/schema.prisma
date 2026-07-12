@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Better Auth models
+model User {
+  id        String    @id
+  email     String    @unique
+  name      String?
+  image     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  sessions Session[]
+  accounts Account[]
+}
+
+model Session {
+  id           String   @id
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  token        String   @unique
+  expiresAt    DateTime
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Account {
+  id              String  @id
+  userId          String
+  user            User    @relation(fields: [userId], references: [id])
+  providerId      String
+  providerAccountId String
+  accessToken     String?
+  refreshToken    String?
+  idToken         String?
+  scope           String?
+  expiresAt       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([providerId, providerAccountId])
+  @@index([userId])
+}
+
+/// pg-boss will auto-create its own management tables
+/// on first connection. No Prisma models needed.
+
+/// Your application models go here

@@ -1,0 +1,31 @@
+# rules/execution-principles.mdc
+
+> Layer 1 — auto-injected. How to execute tasks.
+
+## Rules
+
+1. **Ask before building.** When a task involves architectural decisions, ask the user before writing code.
+2. **Read before editing.** Never edit a file you haven't read in this session. State from earlier in the conversation may be stale.
+3. **Verify after writing.** After creating or editing a file, verify with at least one concrete command: grep/Read for the change, file-exists (`Test-Path`), or JSON valid (`ConvertFrom-Json`). Per-step VERIFY must follow the plan's VERIFY table — file-exists alone is not sufficient evidence for a step claim. See `plan-standards.mdc` §3b.
+4. **Run tests after every plan step.** Within the loop-engineering per-step cycle (rule 15): `npx vitest run`, `sbt test`, `npx tsc --noEmit`. Do not batch multiple steps and test once at the end — test per step, within the VERIFY phase.
+5. **One tool per action.** Don't chain 5 edits in one tool call. Each edit is its own tool call.
+6. **Use exact string matching for edits.** The Edit tool uses literal strings, not regex. Provide enough surrounding context for uniqueness.
+7. **Never use regex-replace on TypeScript/JSON.** The Edit tool with exact strings is safer. For bulk renames, use replaceAll.
+8. **Documentation follows code.** After any feature change, update the relevant `docs/architecture/` doc.
+9. **Session handoff.** Before any edit, read the top entry of `outstanding-tasks.md` for current project state and handoff instructions. After completing a plan step, append a new entry at the top following the established four-element template (timestamp, task summary, files touched, next step).
+10. **Hardening / predeploy.** Before hardening, security, or deploy-staging work, read `HARDENING-GATES.md` and the gate blocks at the top of `agent_terminology.md`, `agent_schema.md`, and `build-terms.md` (agent-index task type **F**).
+11. **Domain config / compute engine.** Before changes to core config or engine logic, read the relevant audit docs in `{{AUDIT_PATH}}/` and the gate blocks in `agent_terminology.md` and `build-terms.md` (task type per `agent-index.mdc`). Sync all config locations; run the scoped test suite.
+12. **Session-end gate discipline.** After completing work in a domain, update only the gate header block in the matching file (not a new session section):
+
+| If you changed | Update gate in |
+|----------------|----------------|
+| Core config / engine | `agent_terminology.md` gate |
+| DB / RLS / routes | `agent_schema.md` gate |
+| Filters / deploy / CI | `build-terms.md` gate + `HARDENING-GATES.md` |
+| New canonical term | `agent_terminology.md` §1–10 only — not a new numbered section |
+| Anything | `outstanding-tasks.md` top entry (test baseline, blockers, handoff) |
+
+No full-doc rewrites — gate rows only. No append-only session sections in terminology, schema, or build-terms.
+13. **Gate docs before new findings.** Before writing a new finding, rule, or learning, check the gate blocks in `agent_terminology.md`, `agent_schema.md`, `build-terms.md`, and the Learnings section. The lesson may already be documented — don't duplicate. If it's truly new, place it in the correct file: workflow → `execution-principles.mdc`, pointer → `memory.mdc`, retrospective → `AGENT_LEARNINGS.md`.
+14. **UTF-8 without BOM on all source files.** .scala, .ts, .tsx, .json — never save with BOM. The Play routes compiler and Scala 3 compiler reject BOM-marked files silently. Configure editors to "UTF-8 without signature" or "UTF8 no BOM". PowerShell Set-Content writes BOM by default — use `[System.IO.File]::WriteAllText()` with `[System.Text.UTF8Encoding]::new($false)`.
+15. **Loop engineering (mandatory).** For each plan step: **READ** (grep/Read pre-state) → **PROPOSE** (files + verify cmd) → **TEST** (implement + run verify) → **VERIFY** (grep/Read post-state + evidence table) → **REPEAT** until pass. Full protocol: [`loop-engineering.mdc`](loop-engineering.mdc). Do not mark a step ✅ or a phase complete without a VERIFY evidence table from **this session's** codebase reads — not conversation memory or prior status tables. Print a checkpoint table after every step (see [`loop-engineering.mdc`](loop-engineering.mdc) § Checkpoint table). Do not start step N+1 while step N has any VERIFY ❌. **If a plan step has no VERIFY table, the step is BLOCKED** — flag the gap per [`loop-engineering.mdc`](loop-engineering.mdc) § Plan VERIFY contract.
