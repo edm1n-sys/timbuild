@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+*.tsbuildinfo
+.next/
+.tanstack/
+build/
+postgres_data/
+*.dump
+pnpm-lock.yaml
+_tmp_*.txt
