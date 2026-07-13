@@ -1,6 +1,7 @@
 # Coding Skills — Numbered Standards
 
-> **Purpose:** Numbered how-to-code rules grouped into phases. Agents reference skills by number across all other docs.
+> **Purpose:** Numbered index of all coding rules. Other files reference skills by number (e.g. `coding-skills.md #10`).
+> **Authority:** For execution protocol → [`loop-engineering.mdc`](loop-engineering.mdc). For plan authoring → [`plan-standards.mdc`](plan-standards.mdc). For per-session mandate → [`agent.md`](agent.md).
 > **Phase 3b** = [`loop-engineering.mdc`](loop-engineering.mdc) (full execution protocol).
 
 ---

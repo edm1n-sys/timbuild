@@ -24,6 +24,17 @@ then read the other `.mdc` files listed in Layer 1 below.
 Correct: read Layer 1 `.mdc` files first, then Layer 2 `.md` files as needed.
 Wrong: skip `.mdc` files because "they're just metadata."
 
+### Which file does what
+
+| You need to... | Read |
+|---------------|------|
+| Run a plan step with proof | `loop-engineering.mdc` (execution protocol) |
+| Write a plan that ships with VERIFY tables | `plan-standards.mdc` (authoring contract) |
+| Look up a skill by number | `coding-skills.md` (numbered index → points to canonical files) |
+| Know what .scala/.sql rules apply | `scala-stack.mdc` + `migration-registry.md` |
+| Know your task type routing | `agent-index.mdc` |
+| Understand the project | `agent.md` (this file) |
+
 ## Loop Engineering — Self-Contained Instructions
 
 > Copy this section into any agent prompt. No external file reads needed.
