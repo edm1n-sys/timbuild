@@ -4,13 +4,13 @@
 
 ## ⚠️ CRITICAL: .mdc files are NOT optional
 
-This project uses `.mdc` files (`.cursor/rules/*.mdc`) for project-critical instructions:
-terminology, execution principles, preserve-features, memory, and task routing.
+This project uses `.mdc` files (`timbuild/rules/*.mdc`) for project-critical instructions.
+There are 9 Layer 1 rule files — every agent must read them all.
 
-**Do NOT skip `.mdc` files.** They are NOT Cursor-only metadata. They contain mandatory
-project rules that apply to ALL agents (opencode, Cursor, Codex, etc.).
+**Do NOT skip `.mdc` files.** They are NOT editor-specific metadata. They contain mandatory
+project rules that apply to ALL AI agents (opencode, Cursor, Codex, Claude, etc.).
 
-If you are NOT running inside Cursor (which auto-injects `.mdc` files), you MUST
+If you are NOT running inside an editor that auto-injects `.mdc` files, you MUST
 read them manually. Start with `agent-index.mdc` to identify your task type,
 then read the other `.mdc` files listed in Layer 1 below.
 
@@ -18,11 +18,11 @@ then read the other `.mdc` files listed in Layer 1 below.
 
 | Layer | Files | When to read |
 |-------|-------|-------------|
-| **Layer 1 — Project rules** | `.cursor/rules/*.mdc` | **Every session.** These are the foundational rules: terminology, execution principles, encoding standards, memory, preserve-features, scala-stack, and agent-index |
-| **Layer 2 — Reference docs** | `.cursor/rules/*.md` | On demand based on your task type (see `agent-index.mdc` task routing) |
+| **Layer 1 — Project rules** | `timbuild/rules/*.mdc` (9 files) | **Every session.** `project-terminology.mdc`, `execution-principles.mdc`, `encoding-standards.mdc`, `loop-engineering.mdc`, `plan-standards.mdc`, `memory.mdc`, `preserve-features.mdc`, `scala-stack.mdc`, `agent-index.mdc` |
+| **Layer 2 — Reference docs** | `timbuild/rules/*.md` | On demand based on your task type (see `agent-index.mdc` task routing) |
 
 Correct: read Layer 1 `.mdc` files first, then Layer 2 `.md` files as needed.
-Wrong: skip `.mdc` files because "they're for Cursor."
+Wrong: skip `.mdc` files because "they're just metadata."
 
 ## Loop Engineering — Self-Contained Instructions
 
