@@ -22,13 +22,13 @@
 
 ## Phase 2 — Verification & Loop (skills 8–10)
 
-| # | Skill | Rule | Violation |
-|---|-------|------|-----------|
-| 8 | **Loop until verified** | Never mark a task complete based on visual inspection. Run verify commands. If they fail, self-correct. Repeat until pass | Silent failures, unfinished work |
-| 9 | **Docs follow code** | After any feature change, update the relevant architecture doc | Docs drift from reality |
-| 10 | **Checkpoints** | Print a checkpoint table after every plan step showing READ/PROPOSE/TEST/VERIFY status. Block advancement with any ❌ row | Phases marked "done" with broken steps |
+| # | Skill | Where to find the full rules |
+|---|-------|------------------------------|
+| 8 | **Loop until verified** | → [`loop-engineering.mdc`](loop-engineering.mdc) § The loop + § Definition of Done |
+| 9 | **Docs follow code** | → [`execution-principles.mdc`](execution-principles.mdc) rule 8 |
+| 10 | **Checkpoints** | → [`loop-engineering.mdc`](loop-engineering.mdc) § Checkpoint table |
 
-**Phase 3b full protocol:** [`loop-engineering.mdc`](loop-engineering.mdc) — READ → PROPOSE → TEST → VERIFY → REPEAT per step.
+**Full execution protocol:** [`loop-engineering.mdc`](loop-engineering.mdc) — READ → PROPOSE → TEST → VERIFY → REPEAT per step. Do not duplicate these rules here.
 
 ---
 
@@ -57,8 +57,8 @@
 
 | Skill # referenced from | File |
 |--------------------------|------|
-| #8, #10 | `execution-principles.mdc` rule 15 → loop-engineering.mdc |
-| #8, #10 | `loop-engineering.mdc` parent header |
-| #12–15 | `AGENT_LEARNINGS.md` anti-patterns |
-| #16–17 | `encoding-standards.mdc`, `build-terms.md` |
-| All | `loop-engineering.mdc` § Plan VERIFY Contract → `plan-standards.mdc` §3b |
+| #8, #10 | [`loop-engineering.mdc`](loop-engineering.mdc) (canonical source) |
+| #9 | [`execution-principles.mdc`](execution-principles.mdc) rule 8 |
+| #12–15 | [`AGENT_LEARNINGS.md`](AGENT_LEARNINGS.md) anti-patterns |
+| #16–17 | [`encoding-standards.mdc`](encoding-standards.mdc), [`build-terms.md`](build-terms.md) |
+| All | [`loop-engineering.mdc`](loop-engineering.mdc) § Plan VERIFY Contract → [`plan-standards.mdc`](plan-standards.mdc) §3b |

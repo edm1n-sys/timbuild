@@ -14,14 +14,15 @@ If you are NOT running inside an editor that auto-injects `.mdc` files, you MUST
 read them manually. Start with `agent-index.mdc` to identify your task type,
 then read the other `.mdc` files listed in Layer 1 below.
 
-## Two layers
+## Authority stack (3 layers)
 
 | Layer | Files | When to read |
 |-------|-------|-------------|
 | **Layer 1 — Project rules** | `timbuild/rules/*.mdc` (9 files) | **Every session.** `project-terminology.mdc`, `execution-principles.mdc`, `encoding-standards.mdc`, `loop-engineering.mdc`, `plan-standards.mdc`, `memory.mdc`, `preserve-features.mdc`, `scala-stack.mdc`, `agent-index.mdc` |
-| **Layer 2 — Reference docs** | `timbuild/rules/*.md` | On demand based on your task type (see `agent-index.mdc` task routing) |
+| **Layer 2 — Session routing** | `agent.md` + `outstanding-tasks.md` + task-type files via `agent-index.mdc` | Every session. Routes you to the right Layer 2 files for your task type. |
+| **Layer 3 — On demand** | `coding-skills.md`, `AGENT_LEARNINGS.md` | When writing code (skills by number) or avoiding past mistakes. |
 
-Correct: read Layer 1 `.mdc` files first, then Layer 2 `.md` files as needed.
+Correct: read Layer 1 `.mdc` files first, then Layer 2 session routing, then Layer 3 on demand.
 Wrong: skip `.mdc` files because "they're just metadata."
 
 ### Which file does what
@@ -38,6 +39,7 @@ Wrong: skip `.mdc` files because "they're just metadata."
 ## Loop Engineering — Self-Contained Instructions
 
 > Copy this section into any agent prompt. No external file reads needed.
+> **Protocol = mandatory bootstrap.** For unfamiliar or multi-step work, still read the full 9 `.mdc` files and Layer 2 files for your task type.
 
 ### The loop (per plan step — do not batch across steps)
 
@@ -144,6 +146,8 @@ Every VERIFY row must cite a **concrete command from this session** — not memo
 
 **If the plan step has no concrete VERIFY command, the step is BLOCKED.** Flag it to the user.
 Do not implement a step that cannot be proved complete with grep/Read evidence.
+
+**Full protocol:** [`loop-engineering.mdc`](loop-engineering.mdc) — Architecture Pivot Gate, JSX Relocate Protocol, worked examples, expanded anti-patterns.
 
 ---
 
