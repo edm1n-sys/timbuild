@@ -238,6 +238,7 @@ sbt "testOnly <scoped>"   # when Scala touched
 
 | Doc | Role |
 |-----|------|
-| [`plan-standards.mdc`](plan-standards.mdc) | Plan **authoring** ground-check |
+| [`plan-standards.mdc`](plan-standards.mdc) | Plan **authoring** ground-check + §3e config round-trip |
 | [`build-terms.md`](build-terms.md) | Pre-staging drift loop (end of sprint) |
 | [`outstanding-tasks.md`](../outstanding-tasks.md) | Handoff + checkpoint snapshot |
+| `scripts/verify-config-roundtrip.ps1` | Mechanical config parse check (pre-commit/CI for config-heavy steps) |

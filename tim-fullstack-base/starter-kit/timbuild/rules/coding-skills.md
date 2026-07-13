@@ -37,7 +37,7 @@
 | # | Skill | Rule | Violation |
 |---|-------|------|-----------|
 | 11 | **Session handoff** | Read `outstanding-tasks.md` top entry before any edit. Append after task batch | Lost context between sessions |
-| 12 | **Config in 4+ places → audit all** | When config lives in 4+ locations, sync all after any change | Split-brain config state |
+| 12 | **Config in 4+ places → audit all** | When config lives in 4+ locations, sync all after any change — see `plan-standards.mdc` §3e for round-trip VERIFY | Split-brain config state |
 | 13 | **Use `===` not `.contains()`** | Strict equality for identifiers, not substring matching | Wrong matches, false hits |
 | 14 | **`structuredClone()` for deep copy** | Use `structuredClone()` not `JSON.parse(JSON.stringify())` or spread for deep object copies | Shared references, mutation bugs |
 | 15 | **Required field on shared interface → find ALL sites** | When adding a required field to a shared interface, grep ALL construction sites | Incomplete implementations |
@@ -59,6 +59,7 @@
 |--------------------------|------|
 | #8, #10 | [`loop-engineering.mdc`](loop-engineering.mdc) (canonical source) |
 | #9 | [`execution-principles.mdc`](execution-principles.mdc) rule 8 |
-| #12–15 | [`AGENT_LEARNINGS.md`](AGENT_LEARNINGS.md) anti-patterns |
+| #12 | [`plan-standards.mdc`](plan-standards.mdc) §3e (config round-trip VERIFY) |
+| #13–15 | [`AGENT_LEARNINGS.md`](AGENT_LEARNINGS.md) anti-patterns |
 | #16–17 | [`encoding-standards.mdc`](encoding-standards.mdc), [`build-terms.md`](build-terms.md) |
 | All | [`loop-engineering.mdc`](loop-engineering.mdc) § Plan VERIFY Contract → [`plan-standards.mdc`](plan-standards.mdc) §3b |
