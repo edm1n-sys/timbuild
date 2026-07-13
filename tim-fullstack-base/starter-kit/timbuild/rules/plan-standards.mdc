@@ -195,6 +195,38 @@ For plan steps tagged **relocate**, **grid**, **wrap**, or **layout** (where JSX
 
 **Hard rule:** Post-state mount count greater than Pass-when is VERIFY ❌ — fix before next step, even if tsc and vitest pass. Duplicates from insert-before-delete are the most common layout failure.
 
+### 3e. Config Round-Trip & Doc Sync (mandatory when config/flags/status change)
+
+For any plan step touching config JSON, feature flags, engine fixtures, or status tracking docs:
+
+#### Config round-trip VERIFY (all four rows required per new/changed flag)
+
+| Claim | Command / Read | Pass when |
+|-------|---------------|-----------|
+| JSON valid | `ConvertFrom-Json path/to/config.json` | No parse errors |
+| parseConfigJson output matches | `rg 'parseConfigJson\|loadConfig' src/engine/` | Config loaded from same JSON file |
+| Fixture reflects config value | `rg '"{FLAG_NAME}"' path/to/fixture.json` | Fixture entry matches config default |
+| Engine branch hits config path | `rg 'config.{FLAG_NAME}' src/engine/` | At least 1 engine code path consumes this flag |
+
+#### Doc sync VERIFY (required when code status changes)
+
+| Claim | Command / Read | Pass when |
+|-------|---------------|-----------|
+| Index/plan rows updated | `rg '{STATUS_VALUE}' docs/status-index.md` | Row shows updated status, not stale |
+| No stale "in progress" | `rg 'IN PROGRESS' docs/` | Only items genuinely in progress — no finished items still marked IP |
+| Files listed match reality | `rg '{FILE_NAME}' docs/` | Every file claimed in docs exists on disk |
+
+#### Forbidden substitutes (config/doc steps)
+
+| Substitute | Why rejected |
+|------------|-------------|
+| "Config sync complete" with no grep evidence | Must show json→parseConfigJson→fixture→engine chain |
+| Status doc marked ✅ without index grep | Docs must match code state — verify row-by-row |
+| "Files: updated docs" in activity log | Must cite specific rows in specific doc files |
+| `tsc --noEmit` or `sbt compile` alone | Tells you code compiles, not that config flows end-to-end |
+
+**Mechanical aid:** `scripts/verify-config-roundtrip.ps1` — validates that `parseConfigJson` loads a given config file without runtime errors. Optional for CI, recommended for pre-commit on config-heavy steps.
+
 ## 4. Estimate Rules
 
 - [ ] Every estimate includes a 20-30% buffer
@@ -265,6 +297,8 @@ Before marking a plan complete, verify:
 - [ ] Every ground-check finding has a severity label (CRITICAL/HIGH/MEDIUM/LOW)
 - [ ] Cross-cutting section addresses test coverage and mobile
 - [ ] The plan passes the "could someone implement this without asking me questions?" test
+- [ ] Config steps have §3e round-trip VERIFY rows (json → parseConfigJson → fixture → engine)
+- [ ] Status/doc steps have §3e doc sync VERIFY rows (index rows match reality, no stale "in progress")
 
 ## 7. Agent Instructions
 
@@ -274,6 +308,7 @@ Before marking a plan complete, verify:
 2. Do not mark a step or phase complete without a VERIFY evidence table from **this session's** grep/Read/Glob
 3. Print a checkpoint table before claiming phase done (see loop-engineering template)
 4. **If a plan step has no concrete VERIFY command (grep pattern, file:line read), the step is BLOCKED.** Do not implement it — flag the gap to the user and wait for VERIFY lines to be defined.
+5. **Config steps must prove the full round-trip** — json → parseConfigJson → fixture → engine (§3e). Status/doc steps must prove index/plan rows changed — not "docs mentioned in Files."
 
 ### When creating a plan:
 
