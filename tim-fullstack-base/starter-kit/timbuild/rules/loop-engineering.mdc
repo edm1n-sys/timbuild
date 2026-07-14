@@ -16,10 +16,10 @@ READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT (until VERIFY all �
 |-------|------------|-----------|
 | **READ** | Execute pre-state commands from the plan step (grep, Read, Glob). Record baseline. Never edit before READ. | Coding before READ block written |
 | **CONTRACT** | **Paste the step's full VERIFY table** (Claim \| Command \| Pass when) from the plan (§3 Plan VERIFY Contract). State which rows will be re-run post-edit. **Do not PROPOSE or edit until the table is pasted.** The VERIFY table is the authorization to edit, not a closing checklist. If the step has no VERIFY table, **STOP** (§3.4c). | Internalizing intent without having the table open; treating VERIFY as post-hoc checklist; proposing edits without pasting the table |
-| **PROPOSE** | List exact files, symbols, before/after; cite verify command from plan | Vague "will implement X" |
+| **PROPOSE** | Name files, symbols, expected post-state. **Scope must match CONTRACT rows only.** | Vague "will implement X"; proposing edits beyond CONTRACT scope |
 | **TEST** | Implement **only this step**; run step verify command | Implementing N+1 while N unverified |
-| **VERIFY** | **Paste the step's VERIFY table with every row annotated PASS or FAIL.** Include command exit codes or `file:line` citations. If any row is FAIL, return to TEST. Do not advance. | Citing results conversationally without a structured record; ✅ from diff memory or prior turn |
-| **REPEAT** | Fix gaps; re-VERIFY | Advance to next step with ❌ rows |
+| **VERIFY** | **Re-paste the VERIFY table with every row annotated PASS or FAIL.** Include command exit codes or `file:line` citations. **Same table as CONTRACT — commands re-run, results pasted.** Any FAIL → return to TEST; do not advance. | Citing results conversationally without a structured record; ✅ from diff memory or prior turn |
+| **REPEAT** | Fix gaps; re-VERIFY. All rows PASS → print §4 checkpoint with Status SHIPPED → next step. | Advance to next step with any FAIL row; skip checkpoint output |
 
 **Hard rule:** No step is **SHIPPED** until VERIFY evidence table is all ✅.  
 **Hard rule:** No phase is **complete** while any step lacks SHIPPED + evidence.  
