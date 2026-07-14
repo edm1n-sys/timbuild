@@ -6,6 +6,8 @@
 
 | Type | When | Layer 2 Read (in order) | Then |
 |---|---|---|---|
+| **P** | Plan Author — write a plan | [`plan-author-protocol.mdc`](plan-author-protocol.mdc) + [`plan-standards.mdc`](plan-standards.mdc) | Produce EXECUTABLE plan with VERIFY tables; do NOT implement |
+| **X** | Executor — run one plan step | [`executor-protocol.mdc`](executor-protocol.mdc) + handoff packet → [`loop-engineering.mdc`](loop-engineering.mdc) | CONTRACT → PROPOSE → TEST → VERIFY → checkpoint SHIPPED/BLOCKED |
 | **A** | One-file bug, no renames | Target file + `agent_schema.md` if DB path | Fix → `npm test` |
 | **A-S** | One-file `.scala` or `conf/sql/` | **ALSO** Type D READ + [`scala-stack.mdc`](scala-stack.mdc) | Fix → `sbt compile` → `sbt test` |
 | **B** | Multi-file / unfamiliar domain | `outstanding-tasks.md` → `agent.md` → deep file → `AGENT_LEARNINGS.md` | [`loop-engineering.mdc`](loop-engineering.mdc) per step → test |
@@ -13,12 +15,14 @@
 | **D** | Schema / migration | `agent_schema.md` → Scala repos / Flyway `conf/sql/` | No column renames without approval |
 | **F** | Hardening / predeploy | `HARDENING-GATES.md` → `agent_terminology.md` → `agent_schema.md` → `build-terms.md` | `plan-standards.mdc` ground-check → [`loop-engineering.mdc`](loop-engineering.mdc) |
 
-If unsure → type B. Hardening or ship-blocking work → type **F**. **Any `.scala` or `conf/sql/` file, even one-file → type A-S** (stack lock mandatory).
+If unsure → type B. Writing a plan → type **P**. Executing a plan step → type **X**. Hardening or ship-blocking work → type **F**. **Any `.scala` or `conf/sql/` file, even one-file → type A-S** (stack lock mandatory). **Never give P and X to the same agent.**
 
 ## Layer 2 Files (must Read tool — not auto-loaded)
 
 | File | Purpose | When to Read |
 |---|---|---|
+| `plan-author-protocol.mdc` | Plan author rules — write plans, never implement | Type P |
+| `executor-protocol.mdc` | Executor rules — one step per session, CONTRACT first | Type X |
 | `agent.md` | Project overview, architecture, file map | Type B |
 | `agent_terminology.md` | Extended glossary, hardening flags, naming conventions | Type C, Type F |
 | `agent_schema.md` | DB tables, RLS, routes, tenant boundaries | Type D, Type F |

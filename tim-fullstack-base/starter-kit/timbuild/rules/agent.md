@@ -5,7 +5,7 @@
 ## ⚠️ CRITICAL: .mdc files are NOT optional
 
 This project uses `.mdc` files (`timbuild/rules/*.mdc`) for project-critical instructions.
-There are 9 Layer 1 rule files — every agent must read them all.
+There are 11 Layer 1 rule files — every agent must read them all.
 
 **Do NOT skip `.mdc` files.** They are NOT editor-specific metadata. They contain mandatory
 project rules that apply to ALL AI agents (opencode, Cursor, Codex, Claude, etc.).
@@ -27,11 +27,35 @@ This project uses **two separate agents** with different prompts. Never give bot
 
 **Human is the only one who advances step N → N+1.**
 
+```
+Plan Author (P)                Executor (X)                  Human
+┌──────────────────┐          ┌──────────────────┐          ┌─────┐
+│ Write plan       │          │ READ pre-state    │          │     │
+│ VERIFY tables    │──┐       │ CONTRACT paste    │          │     │
+│ Pre-state check  │  │       │ PROPOSE scope     │          │     │
+│ EXECUTABLE: yes  │  │       │ TEST implement    │          │     │
+└──────────────────┘  │       │ VERIFY re-paste   │          │     │
+                      │       │ Checkpoint SHIPPED│          │     │
+                      │       └──────────────────┘          │     │
+                      │                │                     │     │
+                      ▼                ▼                     │     │
+              ┌──────────────────┐                          │     │
+              │ handoff-packet.md│◄─────────────────────────┘     │
+              │ (CONTRACT table) │────────► approve → next step  │
+              └──────────────────┘                               │
+                                                                 │
+  1. Plan Author → EXECUTABLE plan                               │
+  2. Human copies VERIFY table into handoff-packet.md            │
+  3. Executor → one step → checkpoint SHIPPED/BLOCKED            │
+  4. Human pastes checkpoint into outstanding-tasks.md           │
+  5. Human creates next handoff packet → repeat                  │
+```
+
 ## Authority stack (3 layers)
 
 | Layer | Files | When to read |
 |-------|-------|-------------|
-| **Layer 1 — Project rules** | `timbuild/rules/*.mdc` (9 files) | **Every session.** `project-terminology.mdc`, `execution-principles.mdc`, `encoding-standards.mdc`, `loop-engineering.mdc`, `plan-standards.mdc`, `memory.mdc`, `preserve-features.mdc`, `scala-stack.mdc`, `agent-index.mdc` |
+| **Layer 1 — Project rules** | `timbuild/rules/*.mdc` (11 files) | **Every session.** `project-terminology.mdc`, `execution-principles.mdc`, `encoding-standards.mdc`, `loop-engineering.mdc`, `plan-standards.mdc`, `plan-author-protocol.mdc`, `executor-protocol.mdc`, `memory.mdc`, `preserve-features.mdc`, `scala-stack.mdc`, `agent-index.mdc` |
 | **Layer 2 — Session routing** | `agent.md` + `outstanding-tasks.md` + task-type files via `agent-index.mdc` | Every session. Routes you to the right Layer 2 files for your task type. |
 | **Layer 3 — On demand** | `coding-skills.md`, `AGENT_LEARNINGS.md` | When writing code (skills by number) or avoiding past mistakes. |
 
@@ -42,6 +66,8 @@ Wrong: skip `.mdc` files because "they're just metadata."
 
 | You need to... | Read |
 |---------------|------|
+| Write a plan (Plan Author) | `plan-author-protocol.mdc` + `plan-standards.mdc` |
+| Execute one plan step (Executor) | `executor-protocol.mdc` + `loop-engineering.mdc` |
 | Run a plan step with proof | `loop-engineering.mdc` (execution protocol) |
 | Write a plan that ships with VERIFY tables | `plan-standards.mdc` (authoring contract) |
 | Look up a skill by number | `coding-skills.md` (numbered index → points to canonical files) |
