@@ -9,6 +9,31 @@
 
 ---
 
+## Executor Packet — Current Step (human: fill before each executor session)
+
+The executor reads this block first. CONTRACT table is right here — no hunting through plan files.
+
+```markdown
+**Plan:** {{PLANS_PATH}}/NNN-name.md
+**Step:** X.Y only (do not start next step)
+**Prerequisite:** [N/A | prior step SHIPPED @ commit abc123]
+
+**CONTRACT (paste before any edit):**
+
+| # | Claim | Command / Read | Pass when |
+|---|-------|----------------|-----------|
+| 1 | [from plan] | `[from plan]` | [from plan] |
+| 2 | [from plan] | `[from plan]` | [from plan] |
+
+**Executor deliverable:** Single checkpoint message with annotated VERIFY table. Status SHIPPED or BLOCKED.
+```
+
+**Forbidden until this packet is cleared:**
+- Starting next step
+- `outstanding-tasks.md` ✅ without checkpoint paste
+
+---
+
 ## Checkpoint — Current Phase
 
 | Step | READ | PROPOSE | TEST | VERIFY | Status |

@@ -18,7 +18,7 @@ Run **exactly one plan step** per session. Follow [`loop-engineering.mdc`](loop-
 The human will provide:
 - **Plan file:** `{{PLANS_PATH}}/NNN-name.md`
 - **Step ID:** e.g. "Step B2 only — do not start B3"
-- **Handoff packet:** see `templates/handoff-packet.md` — contains CONTRACT table + prerequisite checkpoints
+- **Handoff packet:** `outstanding-tasks.md` top block (`## Executor Packet`) — CONTRACT table is pasted there. Read it as your first action before anything else.
 
 ## Loop (mandatory, one step per session)
 

@@ -1,7 +1,8 @@
-# Handoff Packet — Plan Author → Executor
+# Handoff Packet — Reference Template
 
-> **Purpose:** Mandatory artifact between Plan Author and Executor agents.
-> The executor pastes the CONTRACT table before any edit. Without this packet, the executor MUST STOP.
+> **The active packet lives in `outstanding-tasks.md` top block (`## Executor Packet`), not here.** This file is the reference template. The executor reads `outstanding-tasks.md` as their first action — the CONTRACT table must be right there, not in a separate file.
+>
+> Copy this template into `outstanding-tasks.md` before each executor session.
 
 ---
 

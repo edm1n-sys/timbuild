@@ -35,16 +35,18 @@ Step 1: Plan Author (P)           Step 2: Human              Step 3: Executor (X
 
 | You want... | Open agent | Paste this prompt | Say |
 |-------------|-----------|-------------------|-----|
-| **New plan** or revise plan | Plan Author chat | `plan-author-protocol.mdc` | "Make plan NNN EXECUTABLE. Run pre-state VERIFY per step." |
-| **Run one step** | Executor chat | `executor-protocol.mdc` | "Run plan NNN Step X.Y only. Here is the handoff packet:" |
-| **Prove step done** | — | — | Paste executor's checkpoint into `outstanding-tasks.md` (link, not narrative) |
+| **New plan** or revise plan | Plan Author | Plan Author chat | `plan-author-protocol.mdc` | "Make plan NNN EXECUTABLE. Run pre-state VERIFY per step." |
+| **Run one step** | Executor | Executor chat | `executor-protocol.mdc` + `outstanding-tasks.md` (has CONTRACT table) | "Run plan NNN Step X.Y only." |
+| **Prove step done** | Human | — | — | Paste executor's checkpoint into `outstanding-tasks.md` (link, not narrative). Fill next Executor Packet at top. |
 
 ---
 
-## Handoff packet (you fill this — paste into executor chat)
+## Handoff packet (you fill this — paste into `outstanding-tasks.md` top block)
+
+The active packet lives in `outstanding-tasks.md` under `## Executor Packet` — the executor reads it as their first action. Fill it before launching each executor session.
 
 ```markdown
-## Executor packet — Plan NNN Step X.Y
+## Executor Packet — Plan NNN Step X.Y
 
 **Plan file:** {{PLANS_PATH}}/NNN-name.md
 **Step:** X.Y only (do not start next step)
