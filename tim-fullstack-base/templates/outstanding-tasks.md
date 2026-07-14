@@ -3,6 +3,9 @@
 > **Living state.** Keep most recent at top. Read first before any edit.
 > Append after every task batch. Update checkpoint after every plan step.
 > **VERIFY contract:** See `loop-engineering.mdc` § Plan VERIFY Contract + `plan-standards.mdc` §3b.
+> **Two-agent workflow:** Plan Author → `handoff-packet.md` → Executor → checkpoint back to this file. See `agent.md` § Two-agent workflow.
+>
+> **Handoff rule:** Never advance to step N+1 without a SHIPPED checkpoint for step N pasted here.
 
 ---
 

@@ -14,6 +14,19 @@ If you are NOT running inside an editor that auto-injects `.mdc` files, you MUST
 read them manually. Start with `agent-index.mdc` to identify your task type,
 then read the other `.mdc` files listed in Layer 1 below.
 
+## Two-agent workflow (Plan Author + Executor)
+
+This project uses **two separate agents** with different prompts. Never give both roles to one agent.
+
+| Role | Prompt file | Job | Forbidden |
+|------|-------------|-----|-----------|
+| **Plan Author** | [`plan-author-protocol.mdc`](plan-author-protocol.mdc) | Write plans with runnable VERIFY tables. Mark EXECUTABLE. | Editing code, implementing steps |
+| **Executor** | [`executor-protocol.mdc`](executor-protocol.mdc) | Run ONE step per session. Follow [`loop-engineering.mdc`](loop-engineering.mdc). CONTRACT → VERIFY → checkpoint. | Writing plans, expanding scope, self-advancing steps |
+
+**Handoff:** Plan Author produces a [`handoff-packet.md`](../templates/handoff-packet.md) for each step. Executor pastes the CONTRACT table before editing. **No CONTRACT paste → STOP.**
+
+**Human is the only one who advances step N → N+1.**
+
 ## Authority stack (3 layers)
 
 | Layer | Files | When to read |
