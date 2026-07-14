@@ -134,6 +134,8 @@ The following do NOT count as VERIFY evidence and will cause the step to be **BL
 | Tracking-doc ✅ ("marked done in status") | Status docs are output, not input evidence |
 | Visual inspection / "looks correct" | Must be a command output or file:line read |
 | Conversation memory / diff memory | Must be from **this session's** grep/Read |
+| Intent internalized without CONTRACT paste | Agent filled in VERIFY table after code was written — post-hoc checklist, not authorization |
+| "Tests pass" without annotated VERIFY table | Full PASS/FAIL per row required — conversational summary is not auditable |
 
 #### Good vs Bad
 

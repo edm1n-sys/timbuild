@@ -15,7 +15,7 @@ READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT (until VERIFY all �
 | Phase | Agent must | Forbidden |
 |-------|------------|-----------|
 | **READ** | Execute pre-state commands from the plan step (grep, Read, Glob). Record baseline. Never edit before READ. | Coding before READ block written |
-| **CONTRACT** | **Open the step's VERIFY table. Read it aloud — cite every row's Claim and Pass-when. Do not edit until you can name every row.** The VERIFY table is the authorization to edit, not a closing checklist. | Internalizing intent without having the table open; treating VERIFY as post-hoc checklist |
+| **CONTRACT** | **Paste the step's full VERIFY table** (Claim \| Command \| Pass when) from the plan (§3 Plan VERIFY Contract). State which rows will be re-run post-edit. **Do not PROPOSE or edit until the table is pasted.** The VERIFY table is the authorization to edit, not a closing checklist. If the step has no VERIFY table, **STOP** (§3.4c). | Internalizing intent without having the table open; treating VERIFY as post-hoc checklist; proposing edits without pasting the table |
 | **PROPOSE** | List exact files, symbols, before/after; cite verify command from plan | Vague "will implement X" |
 | **TEST** | Implement **only this step**; run step verify command | Implementing N+1 while N unverified |
 | **VERIFY** | **Paste the step's VERIFY table with every row annotated PASS or FAIL.** Include command exit codes or `file:line` citations. If any row is FAIL, return to TEST. Do not advance. | Citing results conversationally without a structured record; ✅ from diff memory or prior turn |
@@ -24,6 +24,16 @@ READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT (until VERIFY all �
 **Hard rule:** No step is **SHIPPED** until VERIFY evidence table is all ✅.  
 **Hard rule:** No phase is **complete** while any step lacks SHIPPED + evidence.  
 **Hard rule:** If a plan step has no concrete VERIFY command (grep pattern, file:line read, test with expected exit code), the step is **BLOCKED**. Do not implement steps with missing VERIFY lines — flag them to the user first.
+
+### Forbidden in any phase
+
+| Action | Why |
+|--------|-----|
+| PROPOSE or edit without CONTRACT paste | VERIFY table never governed the edit sequence |
+| VERIFY as conversational summary only ("tests pass, looks good") | Reviewer cannot audit — no structured record |
+| SHIPPED without checkpoint table | No session evidence per § Checkpoint table |
+| Advance to step N+1 with any FAIL row | Violates § Plan VERIFY Contract item 4 |
+| Intent internalized without CONTRACT paste | Agent fills in VERIFY after code is written — post-hoc checklist |
 
 ---
 
@@ -187,19 +197,32 @@ Both steps SHIPPED in one turn — evidence per claim per step, zero intermediat
 
 ## Checkpoint table (after every step)
 
+**Print once per step, after VERIFY. The VERIFY section is the annotated plan table — not a summary.**
+
 ```markdown
-## Checkpoint — Phase N
-| Step | READ | PROPOSE | TEST | VERIFY | Status |
-|------|:----:|:-------:|:----:|:------:|:--------|
-| N.1 | ✅ | ✅ | ✅ | ✅ | SHIPPED |
-| N.2 | ✅ | ✅ | ✅ | ❌ | IN PROGRESS — … |
-| N.3 | — | — | — | — | NOT STARTED |
+### Checkpoint — Plan NNN Step X.Y
+| Phase | Evidence |
+|-------|----------|
+| READ | [pre-state grep/Read outputs] |
+| CONTRACT | [VERIFY table pasted verbatim from plan — pre-edit] |
+| PROPOSE | [files + symbols] |
+| TEST | [files touched] |
+| VERIFY | See annotated table below |
+| **Status** | BLOCKED | SHIPPED |
+
+| # | Claim | Command / Read | Pass when | Result |
+|---|-------|----------------|-----------|--------|
+| 1 | … | `rg …` | … | PASS (exit 0) |
+| 2 | … | `npx vitest …` | … | FAIL (exit 1) → fixed in TEST, re-VERIFY |
 ```
 
+SHIPPED only when every Result is PASS in **this** message.
+
 **Forbidden until checkpoint shows all steps SHIPPED:**
-- “Phase complete”
-- “All tests green” (without per-step evidence)
-- “Ready for next phase”
+- "Phase complete"
+- "All tests green" (without per-step evidence)
+- "Ready for next phase"
+- SHIPPED with any Result showing FAIL
 
 ---
 
