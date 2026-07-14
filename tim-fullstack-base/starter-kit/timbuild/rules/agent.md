@@ -25,6 +25,8 @@ This project uses **two separate agents** with different prompts. Never give bot
 
 **Handoff:** Plan Author produces a [`handoff-packet.md`](../templates/handoff-packet.md) for each step. Executor pastes the CONTRACT table before editing. **No CONTRACT paste → STOP.**
 
+**Full workflow guide:** [`TWO-AGENT-WORKFLOW.md`](../templates/TWO-AGENT-WORKFLOW.md) — one-page printable reference with cheat sheet commands and handoff packet template.
+
 **Human is the only one who advances step N → N+1.**
 
 ```
@@ -56,7 +58,7 @@ Plan Author (P)                Executor (X)                  Human
 | Layer | Files | When to read |
 |-------|-------|-------------|
 | **Layer 1 — Project rules** | `timbuild/rules/*.mdc` (11 files) | **Every session.** `project-terminology.mdc`, `execution-principles.mdc`, `encoding-standards.mdc`, `loop-engineering.mdc`, `plan-standards.mdc`, `plan-author-protocol.mdc`, `executor-protocol.mdc`, `memory.mdc`, `preserve-features.mdc`, `scala-stack.mdc`, `agent-index.mdc` |
-| **Layer 2 — Session routing** | `agent.md` + `outstanding-tasks.md` + task-type files via `agent-index.mdc` | Every session. Routes you to the right Layer 2 files for your task type. |
+| **Layer 2 — Session routing** | `agent.md` + `outstanding-tasks.md` + task-type files via `agent-index.mdc` | Every session. `agent-index.mdc` routes **P** (Plan Author) / **X** (Executor) / **A-I** (domain types under X). |
 | **Layer 3 — On demand** | `coding-skills.md`, `AGENT_LEARNINGS.md` | When writing code (skills by number) or avoiding past mistakes. |
 
 Correct: read Layer 1 `.mdc` files first, then Layer 2 session routing, then Layer 3 on demand.
@@ -233,12 +235,13 @@ Do not implement a step that cannot be proved complete with grep/Read evidence.
 Before writing any code, read in this order:
 
 1. **All `.mdc` files in `timbuild/rules/`** — project rules and task routing
-2. **`loop-engineering.mdc`** — mandatory execution protocol: READ → PROPOSE → TEST → VERIFY → REPEAT
-3. **`outstanding-tasks.md`** — living state: test baseline, open items, handoff
-4. **`scala-stack.mdc`** — if any `.scala` file is touched (Scala version, deps, DI lock); **`migration-registry.md`** — if any `conf/sql/` file is touched
-5. **`AGENT_LEARNINGS.md`** — anti-patterns from prior sessions
-6. **This file** — project overview, architecture, key files
-7. **Task-specific Layer 2 files** — based on your task type from `agent-index.mdc`
+2. **Pick role:** P (Plan Author) or X (Executor) — see `agent-index.mdc` Role Routing + Two-agent workflow below. If X: human must give plan path + single step ID. Then pick domain type A-I for this step.
+3. **`loop-engineering.mdc`** — mandatory execution protocol: READ → PROPOSE → TEST → VERIFY → REPEAT
+4. **`outstanding-tasks.md`** — living state: test baseline, open items, handoff
+5. **`scala-stack.mdc`** — if any `.scala` file is touched (Scala version, deps, DI lock); **`migration-registry.md`** — if any `conf/sql/` file is touched
+6. **`AGENT_LEARNINGS.md`** — anti-patterns from prior sessions
+7. **This file** — project overview, architecture, key files
+8. **Task-specific Layer 2 files** — based on your task type from `agent-index.mdc`
 
 ## When to read what
 
