@@ -225,7 +225,7 @@ For any plan step touching config JSON, feature flags, engine fixtures, or statu
 | "Files: updated docs" in activity log | Must cite specific rows in specific doc files |
 | `tsc --noEmit` or `sbt compile` alone | Tells you code compiles, not that config flows end-to-end |
 
-**Mechanical aid:** `scripts/verify-config-roundtrip.ps1` — validates that `parseConfigJson` loads a given config file without runtime errors. Optional for CI, recommended for pre-commit on config-heavy steps.
+**Mechanical aid:** `scripts/verify-config-roundtrip.ps1 -ConfigPath <path> -SourcePath <source.ts> -Flags @("flag1","flag2")` — validates JSON valid, flags exist in config, flags are consumed from `json.flagName` (not hardcoded literals), no duplicate keys. Optional `-Node` for runtime parseConfigJson check. CI/pre-commit for config-heavy steps.
 
 ## 4. Estimate Rules
 
