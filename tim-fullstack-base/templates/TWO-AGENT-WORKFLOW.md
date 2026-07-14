@@ -59,7 +59,7 @@ The active packet lives in `outstanding-tasks.md` under `## Executor Packet` —
 | 1 | [copy from plan step VERIFY table] | `[copy command]` | [copy pass-when] |
 | 2 | [copy from plan step VERIFY table] | `[copy command]` | [copy pass-when] |
 
-**Executor deliverable:** Single checkpoint message with annotated VERIFY table. Status SHIPPED or BLOCKED.
+**Executor deliverable:** Your final message must be the formatted checkpoint template (`loop-engineering.mdc` §4) with all rows PASS/FAIL annotated. Do not wait to be asked. Status SHIPPED or BLOCKED.
 **Forbidden:** Next step, whole-phase summary, outstanding-tasks update without checkpoint.
 ```
 

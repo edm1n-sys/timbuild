@@ -22,7 +22,7 @@
 | 1 | [from plan] | `[from plan]` | [from plan] |
 | 2 | [from plan] | `[from plan]` | [from plan] |
 
-**Executor deliverable:** Single checkpoint message with annotated VERIFY table. Status SHIPPED or BLOCKED.
+**Executor deliverable:** Your final message must be the formatted checkpoint template (`loop-engineering.mdc` §4) with all rows PASS/FAIL annotated. Do not wait to be asked. Status SHIPPED or BLOCKED.
 
 **Forbidden:**
 - Whole-phase summary without checkpoint

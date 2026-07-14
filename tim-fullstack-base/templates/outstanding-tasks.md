@@ -25,7 +25,7 @@ The executor reads this block first. CONTRACT table is right here — no hunting
 | 1 | [from plan] | `[from plan]` | [from plan] |
 | 2 | [from plan] | `[from plan]` | [from plan] |
 
-**Executor deliverable:** Single checkpoint message with annotated VERIFY table. Status SHIPPED or BLOCKED.
+**Executor deliverable:** Your final message must be the formatted checkpoint template (`loop-engineering.mdc` §4) with all rows PASS/FAIL annotated. Do not wait to be asked. Status SHIPPED or BLOCKED.
 ```
 
 **Forbidden until this packet is cleared:**
