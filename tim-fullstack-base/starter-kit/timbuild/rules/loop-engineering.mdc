@@ -37,12 +37,20 @@ READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT (until VERIFY all �
 
 ### Completion vocabulary (mandatory)
 
-| Agent MAY say | Agent MUST NOT say |
-|---------------|--------------------|
-| **SHIPPED** | Only for **one plan step** when **that step's CONTRACT table** is 100% PASS |
-| **PARTIAL @ commit** | Step scope done; one or more CONTRACT rows FAIL or deferred |
-| **BLOCKED** | Any CONTRACT row FAIL; missing table; cannot run command |
-| — | **"programme complete"**, **"054 closed"**, **"all done"**, **"gate passed"** — these require a separate Programme Close VERIFY packet, never inferred from child SHIPPED |
+| Agent MAY say | When |
+|---------------|------|
+| **SHIPPED** | One plan step; that step's CONTRACT table is 100% PASS |
+| **PARTIAL @ `<hash>`** | Step scope done; ≥1 CONTRACT row FAIL or deferred |
+| **BLOCKED** | Cannot complete VERIFY; missing table; command fails |
+
+**Forbidden in any message:**
+- "programme complete", "054 closed", "all done", "gate passed"
+- These require a separate Programme Close VERIFY packet — never inferred from child SHIPPED
+
+**Forbidden excuses for PASS:**
+- exit 0 with 0 tests executed
+- "spec not created" when `Glob **/*Spec*` finds a file
+- "logged as open issue" on a CONTRACT row (that row = FAIL → PARTIAL or BLOCKED)
 
 **False PASS on a CONTRACT row** → Status BLOCKED; step not approved.
 **Bonus row marked PASS while CONTRACT row FAIL** → entire checkpoint invalid; re-run VERIFY.
@@ -213,6 +221,7 @@ Both steps SHIPPED in one turn — evidence per claim per step, zero intermediat
 ## Checkpoint table (after every step)
 
 **Print once per step, after VERIFY. The VERIFY section is the annotated plan table — not a summary.**
+**Protocol:** [`executor-protocol.mdc`](executor-protocol.mdc) — session startup, CONTRACT first, forbidden actions.
 
 ```markdown
 ### Checkpoint — Plan NNN Step X.Y
