@@ -134,8 +134,23 @@ The following do NOT count as VERIFY evidence and will cause the step to be **BL
 | Tracking-doc ✅ ("marked done in status") | Status docs are output, not input evidence |
 | Visual inspection / "looks correct" | Must be a command output or file:line read |
 | Conversation memory / diff memory | Must be from **this session's** grep/Read |
+| `vitest`/`sbt` exit 0 with **0 tests executed** | Paste full tail output showing `N passed, 0 failed` with N ≥ 1 |
+| Substituting wrong test path ("test.services.*" when plan says `*EngineSpec`) | Must match plan's exact spec path — any deviation requires an ADR pivot |
 | Intent internalized without CONTRACT paste | Agent filled in VERIFY table after code was written — post-hoc checklist, not authorization |
 | "Tests pass" without annotated VERIFY table | Full PASS/FAIL per row required — conversational summary is not auditable |
+
+#### Test commands — Pass when MUST include execution count
+
+| Command type | Pass when MUST include |
+|--------------|------------------------|
+| `vitest run <file>` | `exit 0` **and** output shows `N passed` with **N ≥ 1** |
+| `sbt "testOnly …"` | `exit 0` **and** output shows **≥1 test** (not "0 tests") |
+| `npx tsc` | `exit 0` only — typecheck has no test count |
+
+**FAIL examples (never mark PASS):**
+- `0 tests` / `No tests to run` / suite not found
+- Substituting `test.services.*` when plan says `*EngineSpec` without ADR pivot
+- "Spec not created" when `Glob **/*Spec*` finds the file
 
 #### Good vs Bad
 

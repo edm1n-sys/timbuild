@@ -35,6 +35,19 @@ READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT (until VERIFY all �
 | Advance to step N+1 with any FAIL row | Violates § Plan VERIFY Contract item 4 |
 | Intent internalized without CONTRACT paste | Agent fills in VERIFY after code is written — post-hoc checklist |
 
+### Completion vocabulary (mandatory)
+
+| Agent MAY say | Agent MUST NOT say |
+|---------------|--------------------|
+| **SHIPPED** | Only for **one plan step** when **that step's CONTRACT table** is 100% PASS |
+| **PARTIAL @ commit** | Step scope done; one or more CONTRACT rows FAIL or deferred |
+| **BLOCKED** | Any CONTRACT row FAIL; missing table; cannot run command |
+| — | **"programme complete"**, **"054 closed"**, **"all done"**, **"gate passed"** — these require a separate Programme Close VERIFY packet, never inferred from child SHIPPED |
+
+**False PASS on a CONTRACT row** → Status BLOCKED; step not approved.
+**Bonus row marked PASS while CONTRACT row FAIL** → entire checkpoint invalid; re-run VERIFY.
+**"Programme complete" without index VERIFY table** → reject; not SHIPPED.
+
 ---
 
 ## Plan VERIFY Contract
@@ -46,6 +59,8 @@ The plan is a contract. Every step's VERIFY table defines what "done" means.
 3. **Stop if the plan has no VERIFY table.** If a plan step says "Verify: tests pass" or has no `| Claim | Command | Pass when |` table, the step is **BLOCKED**. Flag it. Do not compensate by inventing your own verification — the plan author owns the contract.
 4. **Any ❌ = NOT SHIPPED.** A single ❌ row means the step reverts to TEST → fix → re-VERIFY. Do not ship ❌ rows by writing "deferred — follow-up ticket" — that requires the user's explicit approval in the plan's Open Issues.
 5. **Amendment gate — plan-drift forbidden.** If implementation diverges from the plan (new file not listed, symbol renamed, different approach, dropped step), the agent must **STOP** — not adapt silently. Update the plan's §Implementation and VERIFY tables to match the new design, then resume the loop. **Forbidden:** ship code that implements Option B while the plan still describes Option A. The plan is the contract — if reality diverges, amend the contract first, then verify against the amended contract.
+6. **CONTRACT ceiling.** The checkpoint VERIFY section lists **only** rows from the CONTRACT paste (plan step table). **Bonus rows** invented by the executor that were not in the plan's CONTRACT table are **informational only** — they cannot flip BLOCKED → SHIPPED. If a bonus row is marked PASS while a CONTRACT row is FAIL, the entire checkpoint is invalid.
+7. **Scope ceiling.** Files not listed in the active executor packet's scope are out of scope. Touching them requires the human router to amend the packet first.
 
 ---
 
@@ -230,7 +245,7 @@ SHIPPED only when every Result is PASS in **this** message.
 
 1. READ documented with pre-state grep/Read proof  
 2. Code matches plan — post-state grep proves symbols + wiring  
-3. Plan-listed tests **exist on disk** and pass (or logged in Open Issues as deferred)  
+3. Plan-listed tests **exist on disk** and pass. **vitest/sbt Pass when MUST include execution count: `exit 0` AND `N ≥ 1` tests.** Exit 0 with 0 tests executed = FAIL. "Spec not created" when `Glob **/*Spec*` finds the file = FAIL.
 4. VERIFY table all ✅  
 5. `outstanding-tasks.md` top entry updated with verify commands + counts  
 

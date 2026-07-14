@@ -13,6 +13,8 @@ alwaysApply: false
 
 Run **exactly one plan step** per session. Follow [`loop-engineering.mdc`](loop-engineering.mdc) §1 (READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT). Deliverable = checkpoint SHIPPED or BLOCKED.
 
+> **Execute ACTIVE packet only. One step. SHIPPED = CONTRACT all PASS. Do not say "programme complete." sbt/vitest: paste test counts. Status: SHIPPED | PARTIAL @ <hash> | BLOCKED only.**
+
 ## Session startup
 
 The human will provide:
