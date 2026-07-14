@@ -44,18 +44,20 @@ Wrong: skip `.mdc` files because "they're just metadata."
 ### The loop (per plan step — do not batch across steps)
 
 ```
-READ → PROPOSE → TEST → VERIFY → REPEAT (until VERIFY all ✅)
+READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT (until VERIFY all ✅)
 ```
 
 | Phase | Agent must | Forbidden |
 |-------|------------|-----------|
-| **READ** | Read plan step; Read target file; Grep pre-state (symbol missing/present); Glob test paths | Coding before READ block written |
+| **READ** | Execute pre-state commands from the plan step (grep, Read, Glob). Record baseline. Never edit before READ. | Coding before READ block written |
+| **CONTRACT** | **Open the step's VERIFY table. Read it aloud — cite every row's Claim and Pass-when. Do not edit until you can name every row.** | Internalizing intent without having the table open; treating VERIFY as closing checklist |
 | **PROPOSE** | List exact files, symbols, before/after; cite verify command from plan | Vague "will implement X" |
 | **TEST** | Implement **only this step**; run step verify command | Implementing N+1 while N unverified |
-| **VERIFY** | Re-read/grep post-state; fill evidence table; paste test exit codes | ✅ from diff memory or prior turn |
+| **VERIFY** | **Paste the step's VERIFY table with every row annotated PASS or FAIL.** Include command exit codes or file:line citations. If any row is FAIL, return to TEST. | Citing conversationally without a structured record; ✅ from diff memory or prior turn |
 | **REPEAT** | Fix gaps; re-VERIFY | Advance to next step with ❌ rows |
 
 **Hard rule:** No step is ✅ until VERIFY evidence table is all ✅. No phase is complete while any step lacks VERIFY evidence.
+**Hard rule:** The VERIFY table is the authorization to edit, not a closing checklist. If you cannot paste it before proposing, you are not ready to edit.
 
 ### Plan VERIFY Contract
 
