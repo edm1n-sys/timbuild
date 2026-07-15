@@ -28,7 +28,7 @@
 | 9 | **Docs follow code** | → [`execution-principles.mdc`](execution-principles.mdc) rule 8 |
 | 10 | **Checkpoints** | → [`loop-engineering.mdc`](loop-engineering.mdc) § Checkpoint table |
 
-**Full execution protocol:** [`loop-engineering.mdc`](loop-engineering.mdc) — READ → PROPOSE → TEST → VERIFY → REPEAT per step. Do not duplicate these rules here.
+**Full execution protocol:** [`loop-engineering.mdc`](loop-engineering.mdc) — READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT/CHECKPOINT → SELF-REVIEW → STOP or deliver per step. Do not duplicate these rules here.
 
 ---
 
