@@ -9,17 +9,19 @@
 ## The loop (per plan step — do not batch)
 
 ```
-READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT (until VERIFY all ✅)
+READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT/CHECKPOINT → SELF-REVIEW → (STOP or deliver)
 ```
 
 | Phase | Agent must | Forbidden |
 |-------|------------|-----------|
-| **READ** | Execute pre-state commands from the plan step (grep, Read, Glob). Record baseline. Never edit before READ. | Coding before READ block written |
-| **CONTRACT** | **Paste the step's full VERIFY table** (Claim \| Command \| Pass when) from the plan (§3 Plan VERIFY Contract). State which rows will be re-run post-edit. **Do not PROPOSE or edit until the table is pasted.** The VERIFY table is the authorization to edit, not a closing checklist. If the step has no VERIFY table, **STOP** (§3.4c). | Internalizing intent without having the table open; treating VERIFY as post-hoc checklist; proposing edits without pasting the table |
+| **READ** | Run pre-state commands from the step VERIFY table (rg, Read, Glob). Record baseline. **No edits before READ completes.** | Coding before READ block written |
+| **CONTRACT** | Paste step VERIFY table verbatim — pre-edit. | Internalizing intent without having the table open; treating VERIFY as post-hoc checklist; proposing edits without pasting the table |
 | **PROPOSE** | Name files, symbols, expected post-state. **Scope must match CONTRACT rows only.** | Vague "will implement X"; proposing edits beyond CONTRACT scope |
-| **TEST** | Implement **only this step**; run step verify command | Implementing N+1 while N unverified |
-| **VERIFY** | **Re-paste the VERIFY table with every row annotated PASS or FAIL.** Include command exit codes or `file:line` citations. **Same table as CONTRACT — commands re-run, results pasted.** Any FAIL → return to TEST; do not advance. | Citing results conversationally without a structured record; ✅ from diff memory or prior turn |
-| **REPEAT** | Fix gaps; re-VERIFY. All rows PASS → print §4 checkpoint with Status SHIPPED → next step. | Advance to next step with any FAIL row; skip checkpoint output |
+| **TEST** | Implement. Read-before-edit. One edit per tool call. | Implementing N+1 while N unverified |
+| **VERIFY** | **Re-paste the VERIFY table with every row annotated PASS or FAIL.** Include exit codes or `file:line` citations. **Same table as CONTRACT — commands re-run, results pasted.** Any FAIL → return to TEST; do not advance. | Citing results conversationally without a structured record; ✅ from diff memory or prior turn |
+| **REPEAT/CHECKPOINT** | All rows PASS → print §4 checkpoint with Status SHIPPED, PARTIAL, or BLOCKED. | Advance to next step with any FAIL row; skip checkpoint output |
+| **SELF-REVIEW** | Before delivering SHIPPED/PARTIAL/BLOCKED: run §1b self-audit. If any audit item fails, return to VERIFY or TEST. **Do not** end with a passive "ready for next step?" — answer §1b questions in the deliverable. | Delivering without self-audit; no follow-up question |
+| **STOP or deliver** | **STOP** if SELF-REVIEW finds gaps, scope creep, or unresolved human decisions. **Deliver** checkpoint + §1b block only when audit passes or PARTIAL/BLOCKED is honestly documented. | Ship-and-pray; passive handoff without audit trail |
 
 **Hard rule:** No step is **SHIPPED** until VERIFY evidence table is all ✅.  
 **Hard rule:** No phase is **complete** while any step lacks SHIPPED + evidence.  
@@ -34,6 +36,8 @@ READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT (until VERIFY all �
 | SHIPPED without checkpoint table | No session evidence per § Checkpoint table |
 | Advance to step N+1 with any FAIL row | Violates § Plan VERIFY Contract item 4 |
 | Intent internalized without CONTRACT paste | Agent fills in VERIFY after code is written — post-hoc checklist |
+| SHIPPED without SELF-REVIEW block | §1b — no deliverable audit trail |
+| Passive "ready for next step?" without §1b answers | Executor must self-audit first |
 
 ### Completion vocabulary (mandatory)
 
@@ -55,6 +59,40 @@ READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT (until VERIFY all �
 **False PASS on a CONTRACT row** → Status BLOCKED; step not approved.
 **Bonus row marked PASS while CONTRACT row FAIL** → entire checkpoint invalid; re-run VERIFY.
 **"Programme complete" without index VERIFY table** → reject; not SHIPPED.
+
+---
+
+## 1b. SELF-REVIEW (mandatory before deliver)
+
+After VERIFY and before the final message, the executor **asks itself** (not the human) and records answers **in the deliverable**, directly under the checkpoint.
+
+| # | Self-audit question | Pass when |
+|---|---------------------|-----------|
+| 1 | Did I verify **every CONTRACT row** with evidence from **this session** (exit codes, `path:line`, test counts)? | Yes for each row, or row marked FAIL with reason |
+| 2 | What **question do I have for the human** before the next step? | Listed explicitly, or **"None"** |
+| 3 | What is **unclear** that the next step needs? | Listed explicitly, or **"None"** |
+
+### Deliverable format (append after checkpoint Status)
+
+```markdown
+### SELF-REVIEW — Plan NNN Step X
+| # | Question | Answer |
+|---|----------|--------|
+| 1 | Every CONTRACT row verified with session evidence? | [Yes / No — if No, do not deliver SHIPPED] |
+| 2 | Human question before next step? | [question or None] |
+| 3 | Unclear for next step? | [item or None] |
+
+**Deliver decision:** STOP | DELIVER SHIPPED | DELIVER PARTIAL | DELIVER BLOCKED
+```
+
+### Forbidden (SELF-REVIEW)
+
+| Action | Why |
+|--------|-----|
+| SHIPPED without SELF-REVIEW block | Human cannot audit executor discipline |
+| "Ready for next step?" as the only closing line | Passive handoff — §1b must be answered first |
+| Skipping human questions when scope/plan ambiguity exists | Next session starts blind |
+| Delivering SHIPPED when self-audit #1 is No | CONTRACT not actually met |
 
 ---
 
@@ -232,7 +270,8 @@ Both steps SHIPPED in one turn — evidence per claim per step, zero intermediat
 | PROPOSE | [files + symbols] |
 | TEST | [files touched] |
 | VERIFY | See annotated table below |
-| **Status** | BLOCKED | SHIPPED |
+| SELF-REVIEW | [§1b table — mandatory] |
+| **Status** | BLOCKED | PARTIAL @ hash | SHIPPED |
 
 | # | Claim | Command / Read | Pass when | Result |
 |---|-------|----------------|-----------|--------|
@@ -240,9 +279,9 @@ Both steps SHIPPED in one turn — evidence per claim per step, zero intermediat
 | 2 | … | `npx vitest …` | … | FAIL (exit 1) → fixed in TEST, re-VERIFY |
 ```
 
-SHIPPED only when every Result is PASS in **this** message.
+SHIPPED only when every Result is PASS in **this** message **and** SELF-REVIEW row 1 is Yes.
 
-**Self-review (required in checkpoint message):** What question do you have for the human before the next step? What is unclear?
+**Self-review (required in checkpoint message):** See §1b — append the SELF-REVIEW table directly under the checkpoint before delivering.
 
 **Forbidden until checkpoint shows all steps SHIPPED:**
 - "Phase complete"
@@ -259,6 +298,8 @@ SHIPPED only when every Result is PASS in **this** message.
 3. Plan-listed tests **exist on disk** and pass. **vitest/sbt Pass when MUST include execution count: `exit 0` AND `N ≥ 1` tests.** Exit 0 with 0 tests executed = FAIL. "Spec not created" when `Glob **/*Spec*` finds the file = FAIL.
 4. VERIFY table all ✅  
 5. `outstanding-tasks.md` top entry updated with verify commands + counts  
+
+SELF-REVIEW rows 2–3 may surface blockers for the **next** step; they do not authorize advancing to step N+1 in the same session. Only the human advances steps.
 
 ## Definition of Done (phase)
 
