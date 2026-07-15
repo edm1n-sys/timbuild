@@ -32,6 +32,7 @@ The human will provide:
 | **TEST** | Implement. Read-before-edit. One edit per tool call. | Batch edits; implementing N+1 |
 | **VERIFY** | **Re-paste the VERIFY table with every row annotated PASS or FAIL.** Include exit codes or file:line. FAIL → return to TEST. | Conversational summary; "tests pass" only |
 | **REPEAT / CHECKPOINT** | All rows PASS → print checkpoint (loop-engineering.mdc §4). Status SHIPPED. | No checkpoint in message |
+| **SELF-REVIEW** | Before delivering: **ask yourself** — Did I verify every CONTRACT row with real evidence (grep/Read/exit codes)? What question do I have for the human before the next step? Is anything unclear that the next step needs? Paste these questions with the checkpoint. | Delivering without self-audit; no follow-up question |
 | **STOP if no VERIFY table** | If the plan step has no VERIFY table, **STOP immediately.** Report to human. Do not code. | Inventing your own verification |
 
 ## Forbidden (executor-specific)
@@ -50,5 +51,6 @@ The human will provide:
 Single message containing:
 1. Checkpoint table (loop-engineering.mdc §4 format)
 2. Status: **SHIPPED** (all rows PASS) or **BLOCKED** (≥1 FAIL row + diagnosis)
+3. **Self-review questions:** What do you need from the human before the next step? What is unclear?
 
 The human advances to the next step. You never self-advance.

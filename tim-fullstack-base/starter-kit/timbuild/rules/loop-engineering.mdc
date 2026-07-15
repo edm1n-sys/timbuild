@@ -242,6 +242,8 @@ Both steps SHIPPED in one turn — evidence per claim per step, zero intermediat
 
 SHIPPED only when every Result is PASS in **this** message.
 
+**Self-review (required in checkpoint message):** What question do you have for the human before the next step? What is unclear?
+
 **Forbidden until checkpoint shows all steps SHIPPED:**
 - "Phase complete"
 - "All tests green" (without per-step evidence)
