@@ -80,12 +80,12 @@ Wrong: skip `.mdc` files because "they're just metadata."
 ## Loop Engineering — Self-Contained Instructions
 
 > Copy this section into any agent prompt. No external file reads needed.
-> **Protocol = mandatory bootstrap.** For unfamiliar or multi-step work, still read the full 9 `.mdc` files and Layer 2 files for your task type.
+> **Protocol = mandatory bootstrap.** For unfamiliar or multi-step work, still read the full 11 `.mdc` files and Layer 2 files for your task type.
 
 ### The loop (per plan step — do not batch across steps)
 
 ```
-READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT (until VERIFY all ✅)
+READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT/CHECKPOINT → SELF-REVIEW → STOP or deliver
 ```
 
 | Phase | Agent must | Forbidden |
@@ -95,10 +95,13 @@ READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT (until VERIFY all �
 | **PROPOSE** | List exact files, symbols, before/after; cite verify command from plan | Vague "will implement X" |
 | **TEST** | Implement **only this step**; run step verify command | Implementing N+1 while N unverified |
 | **VERIFY** | **Paste the step's VERIFY table with every row annotated PASS or FAIL.** Include command exit codes or file:line citations. If any row is FAIL, return to TEST. | Citing conversationally without a structured record; ✅ from diff memory or prior turn |
-| **REPEAT** | Fix gaps; re-VERIFY | Advance to next step with ❌ rows |
+| **REPEAT/CHECKPOINT** | All rows PASS → print §4 checkpoint with Status SHIPPED, PARTIAL, or BLOCKED. | Advance to next step with any FAIL row; skip checkpoint output |
+| **SELF-REVIEW** | Before delivering: run §1b self-audit. **Do not** end with a passive "ready for next step?" — answer §1b questions in the deliverable. | Delivering without self-audit; no follow-up question |
+| **STOP or deliver** | **STOP** if SELF-REVIEW finds gaps. **Deliver** checkpoint + SELF-REVIEW table when audit passes. | Ship-and-pray; passive handoff |
 
 **Hard rule:** No step is ✅ until VERIFY evidence table is all ✅. No phase is complete while any step lacks VERIFY evidence.
 **Hard rule:** The VERIFY table is the authorization to edit, not a closing checklist. If you cannot paste it before proposing, you are not ready to edit.
+**Hard rule:** SHIPPED only when SELF-REVIEW #1 is Yes and every CONTRACT row PASS. PARTIAL @ hash for honest FAIL. BLOCKED for missing table or broken commands.
 
 ### Plan VERIFY Contract
 
@@ -134,16 +137,22 @@ The plan is a contract. Every step's VERIFY table defines what "done" means.
 
 ### Checkpoint table (after every step)
 
+**Print once per step. Includes SELF-REVIEW — see [`loop-engineering.mdc`](loop-engineering.mdc) §4 + §1b for full template.**
+
 ```markdown
-## Checkpoint — Phase N
-| Step | READ | PROPOSE | TEST | VERIFY | Status |
-|------|:----:|:-------:|:----:|:------:|:--------|
-| N.1 | ✅ | ✅ | ✅ | ✅ | SHIPPED |
-| N.2 | ✅ | ✅ | ✅ | ❌ | IN PROGRESS — … |
-| N.3 | — | — | — | — | NOT STARTED |
+### Checkpoint — Plan NNN Step X.Y
+| Phase | Evidence |
+|-------|----------|
+| READ | [pre-state grep/Read outputs] |
+| CONTRACT | [VERIFY table pasted verbatim — pre-edit] |
+| PROPOSE | [files + symbols] |
+| TEST | [files touched] |
+| VERIFY | See annotated table below |
+| SELF-REVIEW | [§1b table — mandatory] |
+| **Status** | BLOCKED | PARTIAL @ hash | SHIPPED |
 ```
 
-**Forbidden until checkpoint is all SHIPPED:**
+SHIPPED only when every CONTRACT row PASS **and** SELF-REVIEW #1 = Yes.
 - "Phase complete"
 - "All tests green" (without per-step evidence)
 - "Ready for next phase"
@@ -236,7 +245,7 @@ Before writing any code, read in this order:
 
 1. **All `.mdc` files in `timbuild/rules/`** — project rules and task routing
 2. **Pick role:** P (Plan Author) or X (Executor) — see `agent-index.mdc` Role Routing + Two-agent workflow below. If X: human must give plan path + single step ID. Then pick domain type A-I for this step.
-3. **`loop-engineering.mdc`** — mandatory execution protocol: READ → PROPOSE → TEST → VERIFY → REPEAT
+3. **`loop-engineering.mdc`** — mandatory execution protocol: READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT/CHECKPOINT → SELF-REVIEW → STOP or deliver
 4. **`outstanding-tasks.md`** — living state: test baseline, open items, handoff
 5. **`scala-stack.mdc`** — if any `.scala` file is touched (Scala version, deps, DI lock); **`migration-registry.md`** — if any `conf/sql/` file is touched
 6. **`AGENT_LEARNINGS.md`** — anti-patterns from prior sessions
@@ -249,7 +258,7 @@ Before writing any code, read in this order:
 |----------|----------------|
 | **Any `.scala` file** | `scala-stack.mdc` — Scala 3.3.7, Play 3.x, Pekko, AppDependencies-only. `sbt compile` mandatory after edit. |
 | **Any `conf/sql/` file** | `migration-registry.md` — Flyway version ladder, Next V#, duplicate check |
-| **Executing a plan step or task** | `loop-engineering.mdc` — mandatory per-step READ→PROPOSE→TEST→VERIFY→REPEAT loop |
+| **Executing a plan step or task** | `loop-engineering.mdc` — mandatory per-step READ→CONTRACT→PROPOSE→TEST→VERIFY→REPEAT/CHECKPOINT→SELF-REVIEW loop |
 | **Brand new project, empty folder** | `01_START_PROJECT.md` — bootstrap the full stack |
 | **Coming back to an existing project** | `outstanding-tasks.md` (sole source of living state) — test baseline, open items, owner blockers, handoff |
 | **Building a new feature** | `templates/SPEC.md` → (after approval) `templates/PLAN.md` |
@@ -300,7 +309,7 @@ workers/           pg-boss background job handlers
 ## Critical Rules
 
 1. **Read all `.mdc` files first.** They are project rules, not Cursor metadata.
-2. **Loop engineering (mandatory):** Follow [`loop-engineering.mdc`](loop-engineering.mdc) for every task: **READ → PROPOSE → TEST → VERIFY → REPEAT**. No step is done until VERIFY evidence table is all ✅. Print a checkpoint table after every step. Never start step N+1 while step N has any VERIFY ❌.
+2. **Loop engineering (mandatory):** Follow [`loop-engineering.mdc`](loop-engineering.mdc) for every task: **READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT/CHECKPOINT → SELF-REVIEW → STOP or deliver**. No step is done until VERIFY evidence table is all ✅. Print a checkpoint table after every step. Never start step N+1 while step N has any VERIFY ❌.
 3. **No tailwind.config.js:** All Tailwind v4 theme goes in `app/global.css` via `@theme`.
 4. **Server-side auth:** Always use `createMiddleware()` for server function auth, not just route `beforeLoad` guards.
 5. **Tenant isolation:** Use `scopedDb(orgId)` from `lib/tenant.ts` for org-scoped queries.

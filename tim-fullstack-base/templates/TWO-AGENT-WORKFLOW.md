@@ -11,7 +11,7 @@
 | **P** (Plan Author) | `plan-author-protocol.mdc` + `plan-standards.mdc` | Write plans with VERIFY tables; **never** implement | EXECUTABLE plan + step list |
 | **X** (Executor) | `executor-protocol.mdc` + `loop-engineering.mdc` | **One plan step per session** | Checkpoint (§4) + **SELF-REVIEW** (§1b): annotated VERIFY, Status, 3-row self-audit |
 
-> \* If `MASTER-AGENT-PROTOCOL.md` is absent from your project, use `agent.md` + `loop-engineering.mdc`.
+> \* Executor uses `executor-protocol.mdc` + `loop-engineering.mdc` — these are the canonical protocol files. `agent.md` contains the self-contained bootstrap prompt.
 
 ---
 

@@ -15,8 +15,10 @@ The executor reads this block first. CONTRACT table is right here — no hunting
 
 ```markdown
 **Plan:** {{PLANS_PATH}}/NNN-name.md
-**Step:** X.Y only (do not start next step)
-**Prerequisite:** [N/A | prior step SHIPPED @ commit abc123]
+**Step:** X only (do not start next step)
+**Prerequisite:** [N/A | prior checkpoint SHIPPED @ commit abc123]
+**Forbidden:** [list out-of-scope steps, files, programmes — from plan]
+**Role:** X
 
 **CONTRACT (paste before any edit):**
 
@@ -25,7 +27,11 @@ The executor reads this block first. CONTRACT table is right here — no hunting
 | 1 | [from plan] | `[from plan]` | [from plan] |
 | 2 | [from plan] | `[from plan]` | [from plan] |
 
-**Executor deliverable:** Your final message must be the formatted checkpoint template (`loop-engineering.mdc` §4) with all rows PASS/FAIL annotated. Do not wait to be asked. Status SHIPPED or BLOCKED.
+**Executor deliverable (mandatory — `loop-engineering.mdc` §4 + §1b):**
+1. Checkpoint: READ | CONTRACT | PROPOSE | TEST | VERIFY (annotated table) | Status
+2. SELF-REVIEW: 3-row table (CONTRACT verified? | Human question? | Unclear for next step?)
+3. Deliver decision: STOP | DELIVER SHIPPED | DELIVER PARTIAL | DELIVER BLOCKED
+**Forbidden closers:** "Ready for next step?" without §1b answers.
 ```
 
 **Forbidden until this packet is cleared:**

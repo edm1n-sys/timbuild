@@ -321,7 +321,7 @@ Before marking a plan complete, verify:
 
 ### When executing a plan (agent or user):
 
-1. Follow [`loop-engineering.mdc`](loop-engineering.mdc) **per step** — READ → PROPOSE → TEST → VERIFY → REPEAT
+1. Follow [`loop-engineering.mdc`](loop-engineering.mdc) **per step** — READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT/CHECKPOINT → SELF-REVIEW → STOP or deliver
 2. Do not mark a step or phase complete without a VERIFY evidence table from **this session's** grep/Read/Glob
 3. Print a checkpoint table before claiming phase done (see loop-engineering template)
 4. **If a plan step has no concrete VERIFY command (grep pattern, file:line read), the step is BLOCKED.** Do not implement it — flag the gap to the user and wait for VERIFY lines to be defined.
