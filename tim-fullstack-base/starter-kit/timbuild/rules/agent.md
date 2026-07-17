@@ -148,7 +148,7 @@ The plan is a contract. Every step's VERIFY table defines what "done" means.
 | PROPOSE | [files + symbols] |
 | TEST | [files touched] |
 | VERIFY | See annotated table below |
-| SELF-REVIEW | [§1b table — mandatory] |
+| SELF-REVIEW | [§1b table — mandatory; #1 Evidence must cite same commands as VERIFY PASS rows] |
 | **Status** | BLOCKED | PARTIAL @ hash | SHIPPED |
 ```
 

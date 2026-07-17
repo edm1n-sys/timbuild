@@ -76,14 +76,21 @@ After VERIFY and before the final message, the executor **asks itself** (not the
 
 ```markdown
 ### SELF-REVIEW — Plan NNN Step X
-| # | Question | Answer |
-|---|----------|--------|
-| 1 | Every CONTRACT row verified with session evidence? | [Yes / No — if No, do not deliver SHIPPED] |
-| 2 | Human question before next step? | [question or None] |
-| 3 | Unclear for next step? | [item or None] |
+| # | Question | Answer | Evidence (session — required if #1 = Yes) |
+|---|----------|--------|----------------------------------------|
+| 1 | CONTRACT fully verified with session evidence? | Yes / No | **Per step shipped this session:** paste ≥1 post-state line — e.g. `rg "symbol" path — N matches` or `Read path Lx-Ly` or `vitest … exit 0, 3 passed`. If No, list FAIL rows. |
+| 2 | Human question before next step? | <text> or **None** | — |
+| 3 | Unclear for next step? | <text> or **None** | — |
+| 4 | Questions to ask human before next session? | <text> or **None** | — |
 
 **Deliver decision:** STOP | DELIVER SHIPPED | DELIVER PARTIAL | DELIVER BLOCKED
 ```
+
+**Rules:**
+- **SHIPPED** (step or programme): SELF-REVIEW #1 = **Yes** only if the **Evidence** cell is non-empty and matches the annotated VERIFY table for **this session**.
+- **Yes with empty Evidence** = treat as **No** (attestation without audit trail — same as Forbidden: no SHIPPED).
+- Evidence must be **copy-paste from tool output**, not paraphrase ("grep confirmed").
+- For multi-step sessions, Evidence lists **one bullet per step** marked SHIPPED (e.g. `Step 2: rg "data-review" UkEntitySetupRoute.tsx — 1 match`).
 
 ### Forbidden (SELF-REVIEW)
 
@@ -93,6 +100,7 @@ After VERIFY and before the final message, the executor **asks itself** (not the
 | "Ready for next step?" as the only closing line | Passive handoff — §1b must be answered first |
 | Skipping human questions when scope/plan ambiguity exists | Next session starts blind |
 | Delivering SHIPPED when self-audit #1 is No | CONTRACT not actually met |
+| SELF-REVIEW #1 = Yes with empty Evidence column | Attestation without audit trail — paste rg/Read/vitest lines or set #1 = No |
 
 ---
 
@@ -270,7 +278,7 @@ Both steps SHIPPED in one turn — evidence per claim per step, zero intermediat
 | PROPOSE | [files + symbols] |
 | TEST | [files touched] |
 | VERIFY | See annotated table below |
-| SELF-REVIEW | [§1b table — mandatory] |
+| SELF-REVIEW | [§1b table — mandatory; #1 Evidence must cite same commands as VERIFY PASS rows] |
 | **Status** | BLOCKED | PARTIAL @ hash | SHIPPED |
 
 | # | Claim | Command / Read | Pass when | Result |
