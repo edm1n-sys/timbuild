@@ -19,7 +19,7 @@
 |------|-----------|---------|
 | Route is wired | Action composition is present in the route definition | `authMiddleware(POST, handler)` |
 | Route is bare | No composition — the handler is directly exported | `export const POST = handler` |
-| Tenant-scoped | Query includes an `organizationId` filter | `prisma.taxRecord.findMany({ where: { organizationId } })` |
+| Tenant-scoped | Query includes an `organizationId` filter | `prisma.customRecord.findMany({ where: { organizationId } })` |
 | Stub | Returns 501 Not Implemented | Never fake 200 success with convincing IDs |
 | Validated | Input passes through a Zod schema defined in `lib/validation.ts` | `use(validationSchema)` |
 | Hardened | All rules in `02_HARDEN_PROJECT.md` pass | Verified via checklist |

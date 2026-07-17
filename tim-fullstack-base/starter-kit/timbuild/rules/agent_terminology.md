@@ -25,7 +25,7 @@ This file extends it with domain-specific terms and operational semantics.
 | Zod schema | `Schema` | `createInvoiceSchema` | `input`, `validator` |
 | Server function | `Fn` | `createInvoiceFn` | `handler`, `action` |
 | Middleware | `Middleware` | `authMiddleware` | `guard`, `protect` |
-| Prisma model | PascalCase singular | `TaxRecord` | `tax_records`, `TaxRecords` |
+| Prisma model | PascalCase singular | `CustomRecord` | `customRecords`, `CustomRecords` |
 | Route param | kebab-case | `billing-portal` | `billingPortal`, `billing_portal` |
 | DB column | camelCase | `organizationId` | `org_id`, `OrganizationId` |
 

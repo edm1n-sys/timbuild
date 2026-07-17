@@ -123,5 +123,5 @@ Executor does **not** wait for "go ahead" on the next step — it delivers §1b 
 |-------|---------------|
 | Full VERIFY ingredient lists | [`loop-engineering.mdc`](..\timbuild\rules\loop-engineering.mdc) §§2–3 |
 | Plan-author ground-check | [`plan-standards.mdc`](..\timbuild\rules\plan-standards.mdc) |
-| Jurisdiction-specific examples | Project plan files under `{{PLANS_PATH}}/` |
+| Domain-specific examples | Project plan files under `{{PLANS_PATH}}/` |
 | Stack locks (Scala, Flyway) | [`scala-stack.mdc`](..\timbuild\rules\scala-stack.mdc) + [`migration-registry.md`](..\timbuild\rules\migration-registry.md) |

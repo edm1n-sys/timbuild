@@ -10,7 +10,7 @@
 
 ## 1. Relational Integrity & Multi-Tenant Boundaries
 
-- **Mandatory Multi-Tenant Enforcement:** Every model linked directly or indirectly to corporate operations (e.g., `TaxRecord`, `ChatConversation`, `Subscription`) must strictly contain an `organizationId` field mapping directly back to the `Organization` model.
+- **Mandatory Multi-Tenant Enforcement:** Every model linked directly or indirectly to corporate operations (e.g., `CustomRecord`, `ChatConversation`, `Subscription`) must strictly contain an `organizationId` field mapping directly back to the `Organization` model.
 - **Implicit Query Isolation Rule:** The agent is completely forbidden from executing a `findMany`, `update`, or `delete` operation on tenant-scoped models without explicitly adding an `organizationId` matching wrapper inside the query execution block.
 
 ---
@@ -33,10 +33,10 @@ Add new rows to this table before introducing new models.
 ```ts
 // CORRECT — scoped via lib/tenant.ts
 const scopedDb = db.withTenant(orgId)
-const records = await scopedDb.taxRecord.findMany({ ... })
+const records = await scopedDb.customRecord.findMany({ ... })
 
 // WRONG — no org filter
-const records = await db.taxRecord.findMany({ ... })
+const records = await db.customRecord.findMany({ ... })
 ```
 
 ## 4. Rules
