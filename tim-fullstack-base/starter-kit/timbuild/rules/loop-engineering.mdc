@@ -90,7 +90,7 @@ After VERIFY and before the final message, the executor **asks itself** (not the
 - **SHIPPED** (step or programme): SELF-REVIEW #1 = **Yes** only if the **Evidence** cell is non-empty and matches the annotated VERIFY table for **this session**.
 - **Yes with empty Evidence** = treat as **No** (attestation without audit trail — same as Forbidden: no SHIPPED).
 - Evidence must be **copy-paste from tool output**, not paraphrase ("grep confirmed").
-- For multi-step sessions, Evidence lists **one bullet per step** marked SHIPPED (e.g. `Step 2: rg "data-review" UkEntitySetupRoute.tsx — 1 match`).
+- For multi-step sessions, Evidence lists **one bullet per step** marked SHIPPED (e.g. `Step 2: rg "MyComponent" src/components/ — 1 match`).
 
 ### Forbidden (SELF-REVIEW)
 
