@@ -5,7 +5,7 @@
 ## ⚠️ CRITICAL: .mdc files are NOT optional
 
 This project uses `.mdc` files (`timbuild/rules/*.mdc`) for project-critical instructions.
-There are 11 Layer 1 rule files — every agent must read them all.
+There are 13 Layer 1 rule files — every agent must read them all.
 
 **Do NOT skip `.mdc` files.** They are NOT editor-specific metadata. They contain mandatory
 project rules that apply to ALL AI agents (opencode, Cursor, Codex, Claude, etc.).
@@ -14,14 +14,17 @@ If you are NOT running inside an editor that auto-injects `.mdc` files, you MUST
 read them manually. Start with `agent-index.mdc` to identify your task type,
 then read the other `.mdc` files listed in Layer 1 below.
 
-## Two-agent workflow (Plan Author + Executor)
+## Two-agent workflow (Plan Author + Executor + Auditor)
 
-This project uses **two separate agents** with different prompts. Never give both roles to one agent.
+This project uses **three separate agents** with different prompts. Never give two roles to one agent.
 
 | Role | Prompt file | Job | Forbidden |
 |------|-------------|-----|-----------|
 | **Plan Author** | [`plan-author-protocol.mdc`](plan-author-protocol.mdc) | Write plans with runnable VERIFY tables. Mark EXECUTABLE. | Editing code, implementing steps |
-| **Executor** | [`executor-protocol.mdc`](executor-protocol.mdc) | Run ONE step per session. Follow [`loop-engineering.mdc`](loop-engineering.mdc). CONTRACT → VERIFY → checkpoint. | Writing plans, expanding scope, self-advancing steps |
+| **Executor** | [`executor-protocol.mdc`](executor-protocol.mdc) | Run ONE step per session. Follow [`loop-engineering.mdc`](loop-engineering.mdc). CONTRACT → VERIFY → checkpoint. Deliverable: DELIVERED FOR AUDIT. | Writing plans, expanding scope, self-advancing steps, saying SHIPPED |
+| **Auditor** | [`auditor-adversarial.mdc`](auditor-adversarial.mdc) | **Break the implementation.** Run VERIFY + 8 attack vectors + scoped tests. Deliver audit finding table. | Marking SHIPPED; trusting executor summary; Glob-only file existence; skipping Phase 2 attacks |
+
+**Flow:** Executor → DELIVERED FOR AUDIT → **Auditor (new session)** → PASS/PARTIAL/FAIL report → Human marks SHIPPED.
 
 **Handoff:** Plan Author produces a [`handoff-packet.md`](../templates/handoff-packet.md) for each step. Executor pastes the CONTRACT table before editing. **No CONTRACT paste → STOP.**
 
@@ -57,7 +60,7 @@ Plan Author (P)                Executor (X)                  Human
 
 | Layer | Files | When to read |
 |-------|-------|-------------|
-| **Layer 1 — Project rules** | `timbuild/rules/*.mdc` (11 files) | **Every session.** `project-terminology.mdc`, `execution-principles.mdc`, `encoding-standards.mdc`, `loop-engineering.mdc`, `plan-standards.mdc`, `plan-author-protocol.mdc`, `executor-protocol.mdc`, `memory.mdc`, `preserve-features.mdc`, `scala-stack.mdc`, `agent-index.mdc` |
+| **Layer 1 — Project rules** | `timbuild/rules/*.mdc` (13 files) | **Every session.** `project-terminology.mdc`, `execution-principles.mdc`, `encoding-standards.mdc`, `loop-engineering.mdc`, `plan-standards.mdc`, `plan-author-protocol.mdc`, `executor-protocol.mdc`, `executor-exit.mdc`, `auditor-adversarial.mdc`, `memory.mdc`, `preserve-features.mdc`, `scala-stack.mdc`, `agent-index.mdc` |
 | **Layer 2 — Session routing** | `agent.md` + `outstanding-tasks.md` + task-type files via `agent-index.mdc` | Every session. `agent-index.mdc` routes **P** (Plan Author) / **X** (Executor) / **A-I** (domain types under X). |
 | **Layer 3 — On demand** | `coding-skills.md`, `AGENT_LEARNINGS.md` | When writing code (skills by number) or avoiding past mistakes. |
 
@@ -70,6 +73,8 @@ Wrong: skip `.mdc` files because "they're just metadata."
 |---------------|------|
 | Write a plan (Plan Author) | `plan-author-protocol.mdc` + `plan-standards.mdc` |
 | Execute one plan step (Executor) | `executor-protocol.mdc` + `loop-engineering.mdc` |
+| Audit executor's work (Auditor) | `auditor-adversarial.mdc` — break the implementation, 8 attack vectors, do not trust summary |
+| Run a plan step with proof | `loop-engineering.mdc` (execution protocol) |
 | Run a plan step with proof | `loop-engineering.mdc` (execution protocol) |
 | Write a plan that ships with VERIFY tables | `plan-standards.mdc` (authoring contract) |
 | Look up a skill by number | `coding-skills.md` (numbered index → points to canonical files) |
@@ -80,7 +85,7 @@ Wrong: skip `.mdc` files because "they're just metadata."
 ## Loop Engineering — Self-Contained Instructions
 
 > Copy this section into any agent prompt. No external file reads needed.
-> **Protocol = mandatory bootstrap.** For unfamiliar or multi-step work, still read the full 11 `.mdc` files and Layer 2 files for your task type.
+> **Protocol = mandatory bootstrap.** For unfamiliar or multi-step work, still read the full 13 `.mdc` files and Layer 2 files for your task type.
 
 ### The loop (per plan step — do not batch across steps)
 
@@ -244,7 +249,7 @@ Do not implement a step that cannot be proved complete with grep/Read evidence.
 Before writing any code, read in this order:
 
 1. **All `.mdc` files in `timbuild/rules/`** — project rules and task routing
-2. **Pick role:** P (Plan Author) or X (Executor) — see `agent-index.mdc` Role Routing + Two-agent workflow below. If X: human must give plan path + single step ID. Then pick domain type A-I for this step.
+2. **Pick role:** P (Plan Author), X (Executor), or A (Auditor) — see `agent-index.mdc` Role Routing + workflow below. If X: human must give plan path + single step ID. If A: human must give plan path + executor session reference. Never combine roles in one session.
 3. **`loop-engineering.mdc`** — mandatory execution protocol: READ → CONTRACT → PROPOSE → TEST → VERIFY → REPEAT/CHECKPOINT → SELF-REVIEW → STOP or deliver
 4. **`outstanding-tasks.md`** — living state: test baseline, open items, handoff
 5. **`scala-stack.mdc`** — if any `.scala` file is touched (Scala version, deps, DI lock); **`migration-registry.md`** — if any `conf/sql/` file is touched
