@@ -351,6 +351,10 @@ Before marking a plan complete, verify:
 4. Check the API client call pattern against the proposed route format
 5. Update the plan with corrections, then add each correction to Items Resolved with the fix applied
 
+### When performing an adversarial audit:
+
+Follow [`auditor-adversarial.mdc`](../rules/auditor-adversarial.mdc) — 3-phase protocol: literal VERIFY → 8 break vectors → scoped tests → 7-row exit table. Do not trust executor summary. Read by exact path, not Glob-only. If tests cannot run, state BLOCKED — do not infer PASS.
+
 ## 8. Naming Convention
 
 ```

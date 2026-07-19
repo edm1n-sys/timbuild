@@ -8,8 +8,9 @@
 |-----------------|-----------|-------------|:-----------:|
 | "write/revise plan" | **P** — Plan Author | [`plan-author-protocol.mdc`](plan-author-protocol.mdc) | **No** |
 | "run plan NNN step Y" | **X** — Executor | [`executor-protocol.mdc`](executor-protocol.mdc) | **Yes** (one step only) |
+| "audit/verify/break it/DELIVERED FOR AUDIT" | **AUD** — Adversarial Auditor | [`auditor-adversarial.mdc`](auditor-adversarial.mdc) | **No** (Read/grep/tests only) |
 
-**If unsure:** P if no step ID given; X if a specific step ID is given. **Never give P and X to the same agent.**
+**If unsure:** If audit/verify/review shipped work → **AUD** (not P/X). If between P and X only: P if no step ID given; X if step ID provided. **Never give two roles to the same agent.**
 
 ---
 
@@ -26,7 +27,7 @@ After choosing X, pick the domain type for this step:
 | **D** | Schema / migration | `agent_schema.md` → Scala repos / Flyway `conf/sql/` | No column renames without approval |
 | **F** | Hardening / predeploy | `HARDENING-GATES.md` → `agent_terminology.md` → `agent_schema.md` → `build-terms.md` | `plan-standards.mdc` ground-check → [`loop-engineering.mdc`](loop-engineering.mdc) |
 
-If unsure → type B. **Any `.scala` or `conf/sql/` file, even one-file → type A-S** (stack lock mandatory).
+If unsure → type B. **Any `.scala` or `conf/sql/` file, even one-file → type A-S** (stack lock mandatory). Type **AUD** does not use A–I; read `auditor-adversarial.mdc` only.
 
 ## Layer 2 Files (must Read tool — not auto-loaded)
 
@@ -41,6 +42,7 @@ If unsure → type B. **Any `.scala` or `conf/sql/` file, even one-file → type
 | `build-terms.md` | Route wiring terms, drift checks, verify loop | Type F, infra audits |
 | `scala-stack.mdc` | Scala version, deps, DI, import surface lock | Type A-S, Type D, any `.scala` |
 | `loop-engineering.mdc` | READ → PROPOSE → TEST → VERIFY per plan step | Type B, F, any multi-step plan |
+| `auditor-adversarial.mdc` | Adversarial audit: VERIFY + break vectors + scoped tests | Role **AUD** — "audit/verify/DELIVERED FOR AUDIT" |
 | `AGENT_LEARNINGS.md` | Mistakes log, lessons learned | Type B |
 | `HARDENING-GATES.md` | Security gates, owner gates, deploy checklist | Type F, before deploy |
 | `{{AUDIT_PATH}}/*.md` | Audit docs — coverage maps, config matrices | Type F (when audit files exist) |
@@ -54,3 +56,5 @@ After any edit:
 4. `sbt compile` (if backend files touched)
 5. `sbt test` (if backend logic changed)
 6. `npm run build` (before committing)
+
+**Role AUD — adversarial audit:** Scoped tests per `auditor-adversarial.mdc` Phase 3 only. Whole-suite `vitest run` / `sbt test` totals do not substitute for plan-listed scoped tests. If shell unavailable, state BLOCKED — do not infer PASS.
