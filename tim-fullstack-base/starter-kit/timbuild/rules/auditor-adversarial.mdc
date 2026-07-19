@@ -1,48 +1,90 @@
 ---
-description: Adversarial auditor protocol — break the implementation, do not trust the executor.
+description: Adversarial auditor protocol — break implementations, don't rubber-stamp VERIFY tables
 alwaysApply: false
 ---
-# Auditor — Adversarial Protocol
+# Auditor Adversarial Protocol
 
-> **Role:** You are the ADVERSARIAL AUDITOR — not the executor. Your job is to BREAK the implementation.
-> **The executor delivered DELIVERED FOR AUDIT. You must prove or disprove SHIPPED.**
-> **Never trust executor summaries. Re-run commands from this session. Use Read by exact path, not Glob-only.**
+> **Layer:** Session role — applies when the user asks to **audit**, **verify**, **review shipped work**, or says **"DELIVERED FOR AUDIT"**.
+> **Not for:** Executors implementing plans. Executors follow `execution-principles.mdc` §17 + `plan-standards.mdc` §7.
+> **Cross-ref:** `plan-standards.mdc` §3b (VERIFY tables), §3c (ADR pivots), §7 (audit ground-checks).
+
+## Role split (mandatory)
+
+| Role | May say | Forbidden |
+|------|---------|-----------|
+| **Executor** | `DELIVERED FOR AUDIT` | `SHIPPED`, update checklist to PASS, close plan |
+| **Auditor (you)** | `PASS` / `PARTIAL` / `FAIL` per row | Trust executor summary without re-Read; Glob-only existence checks; infer test PASS without running |
+
+**New chat for audit** when possible. Same session as executor inherits optimism.
 
 ---
 
-## Audit phases (all mandatory)
+## When this rule activates
 
-### Phase 1 — Plan VERIFY (literal)
+User message contains any of: `audit`, `verify against`, `adversarial`, `break it`, `red team`, `DELIVERED FOR AUDIT`, `plan exit verify`, `did I ship`.
 
-Run every VERIFY row from the plan. Use `Read` by exact path. Paste command output or `file:line`.
+If ambiguous, **default to adversarial** — assume the implementation is wrong until proven.
 
-**Forbidden:** Glob-only file existence. "Spec exists" without paste of test output.
+---
 
-### Phase 2 — Break vectors (minimum 5 rows, even if all PASS)
+## Three phases (all required)
 
-For each vector, state ATTACK → EXPECT → ACTUAL → VERDICT:
+Do **not** skip Phase 2 even if Phase 1 is all PASS.
 
-| # | Vector | Attack | Expect | Actual | Verdict |
-|---|--------|--------|--------|--------|---------|
-| 1 | **Auth bypass** | curl without session; wrong workspace/tenant ID in path; header mismatch | 401 or 403 | `exit code + response snippet` | PASS / FAIL |
-| 2 | **Tier bypass** | FREE_TRIAL role; missing seed tenant; no subscription | Guarded response or redirect | | |
-| 3 | **Route surface** | `rg` entire repo for endpoint paths (conf, src, docs, filters, tests) | All paths accounted; no undocumented routes | | |
-| 4 | **Caller parity** | Trace SPA → API client → conf/routes for every gated endpoint | Same fields in caller body and controller extraction | | |
-| 5 | **Test gaps** | List endpoints with NO integration test; list behaviours with NO unit test | Plan lists GAP row or test exists | | |
-| 6 | **Regression** | `rg` for dead code branches, removed API paths, stale filters | No dead code unless plan ADR documents removal | | |
-| 7 | **Edge cases** | Missing tenantId in UI; empty request body; malformed JSON; null fields | Handled gracefully or documented | | |
-| 8 | **Scope contract** | Request body fields used by gate vs fields in HTTP body | Same JSON keys — no mismatch (084-class bug) | | |
+### Phase 1 — Literal plan VERIFY
 
-**If you find zero issues, list 3 residual risks** you tried but could not exploit.
+1. Read `{{PLANS_PATH}}/NNN-*.md` for the plan under audit.
+2. Run **every** step VERIFY row verbatim (`rg`, `Read`, `Glob`, scoped test).
+3. Use **`Read` on exact paths** for file-existence claims. **Glob alone is insufficient** (known false negatives in this repo).
+4. Paste exit codes for tests. If unable to run: state `BLOCKED — cannot run tests` and mark test rows **INCONCLUSIVE**, not PASS.
 
-### Phase 3 — Run tests (required)
+Output: table `Step | VERIFY row | Verdict | Evidence (file:line or exit code)`.
+
+### Phase 2 — Break vectors (adversarial)
+
+For **each** vector below, fill: `ATTACK → EXPECT → ACTUAL → VERDICT`.
+
+| # | Vector | What to try |
+|---|--------|-------------|
+| 1 | **Auth bypass** | Unauthenticated request; session for wsA + path wsB; `X-Target-MNC-Id` mismatch |
+| 2 | **Tier / feature bypass** | FREE_TRIAL or tier without required feature; assert **body** not only status |
+| 3 | **Route surface** | Negative `rg` for **deprecated** paths across `conf/`, `src/`, `app/`, `test/`, `docs/` |
+| 4 | **Caller parity** | Trace SPA → `src/api/*` → `conf/routes` → controller action chain for **every** endpoint in plan |
+| 5 | **Scope contract** | Field used by gate/quota/auth must match field in HTTP body (084-class: `parsedRows` vs `entities`) |
+| 6 | **Test coverage holes** | List each endpoint/behaviour with **no** scoped IT or named vitest |
+| 7 | **Dead code / drift** | Orphan rate-limit rules, stale filters, docs still citing removed APIs |
+| 8 | **Edge / UX** | Missing path param guard (`tenantId!`), empty payloads, error message leaks (`e.getMessage`) |
+| 9 | **Live endpoint crawl** | If deployment exists: `curl` or `WebFetch` on plan-listed endpoints; compare response shape with SPA caller |
+
+**Minimum output:** 5 break-vector rows. If all PASS, still list **3 residual risks** you attempted but could not exploit.
+
+### Phase 3 — Scoped tests (mandatory when shell available)
 
 ```bash
-sbt "testOnly <scoped>"
-npx vitest run <file>
+# Plan-listed tests first (use actual paths from plan)
+sbt "testOnly <exact.Spec.from.plan>"
+npx vitest run <exact.test.file.from.plan>
 ```
 
-Report exit codes and test counts. If you cannot run, say **BLOCKED** — do not infer PASS.
+Whole-suite `sbt test` / `vitest run` totals do not substitute for plan-listed scoped tests (`plan-standards.mdc` §3b).
+
+---
+
+## Session Exit VERIFY (7 rows)
+
+Print this table at end of every audit:
+
+| Row | Check | Pass when |
+|-----|-------|-----------|
+| 1 | Files exist | `Read` exact path succeeds |
+| 2 | Encoding | No BOM on edited `.scala` / `.ts` / `.routes` (spot-check) |
+| 3 | Scope parity | Gate reads same field caller sends |
+| 4 | Negative grep | Deprecated symbols → 0 in `src/` + `conf/` (docs may lag — note separately) |
+| 5 | Scoped test | Plan-listed `testOnly` / `vitest` exit 0 |
+| 6 | Tracking vs disk | Plan status + `outstanding-tasks.md` + checklist match evidence |
+| 7 | Adversarial one-liner | One sentence: "Attacker could … unless …" with `file:line` proof |
+
+SHIPPED is allowed only when rows 1–7 are PASS or ADR-documented pivot (§3c). Auditor does not mark SHIPPED — recommend status to user.
 
 ---
 
@@ -52,25 +94,28 @@ Report exit codes and test counts. If you cannot run, say **BLOCKED** — do not
 ### Audit — Plan NNN
 
 #### Phase 1: VERIFY
-| Row | Claim | Evidence | Pass |
-|-----|-------|----------|:----:|
-| ... | ... | ... | ... |
+| Step | VERIFY row | Verdict | Evidence |
+|------|-----------|---------|----------|
+| ... | ... | PASS / FAIL / INCONCLUSIVE | file:line or exit code |
 
 #### Phase 2: Break vectors (min 5)
-| # | Vector | Attack | Expect | Actual | Verdict |
-|---|--------|--------|--------|--------|---------|
-| 1 | ... | ... | ... | ... | PASS / FAIL |
+| # | Vector | ATTACK | EXPECT | ACTUAL | VERDICT |
+|---|--------|--------|--------|--------|:------:|
 
 #### Phase 3: Tests
-| Test | Command | Exit code | Tests | Pass |
+| Test | Command | Exit code | Count | Pass |
 |------|---------|:---------:|-------|:----:|
+
+#### Session Exit VERIFY
+| # | Check | Evidence | Pass |
+|---|-------|----------|:----:|
 
 #### Residual risks (if all PASS)
 1. ...
 2. ...
 3. ...
 
-**Audit result:** PASS (all rows + tests clean) | PARTIAL (≥1 FAIL, non-blocking) | FAIL (≥1 CRITICAL or HIGH, must fix before SHIPPED)
+**Audit result:** PASS (all rows + tests clean) | PARTIAL (≥1 FAIL) | FAIL (≥1 CRITICAL, must fix before SHIPPED)
 ```
 
 ---
@@ -81,10 +126,11 @@ Report exit codes and test counts. If you cannot run, say **BLOCKED** — do not
 |--------|-----|
 | Marking SHIPPED from audit alone | Only human marks SHIPPED |
 | Trusting executor summary | Re-run commands from this session |
-| Glob-only file existence | Must Read by exact path |
+| Glob-only file existence | Must `Read` by exact path |
 | "Tests pass" without exit code + count | Must paste `sbt`/`vitest` tail output |
 | Skipping Phase 2 | Minimum 5 break vectors even if plan VERIFY is clean |
 | Updating `outstanding-tasks.md` | Auditor delivers finding table only — human updates tracking |
+| Inferring PASS when shell unavailable | State `BLOCKED — cannot run`; do not mark PASS |
 
 ---
 
@@ -97,4 +143,5 @@ AUDITOR MODE: Assume the executor lied. Try to break it.
 - Every endpoint in plan must have IT or explicit GAP row
 - Run scoped tests; paste exit code
 - Min 3 HIGH/MEDIUM attack attempts documented
+- If you cannot run tests, state BLOCKED — do not infer PASS
 ```
