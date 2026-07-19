@@ -57,3 +57,101 @@ const createInvoiceFn = createServerFn({ method: 'POST' })
 3. `npm run typecheck` must pass after every server function change. Typecheck is a minimum gate — it does not replace per-step VERIFY evidence (see `loop-engineering.mdc` § Plan VERIFY Contract and `plan-standards.mdc` §3b).
 4. If the verification pipeline fails on signature mismatch, self-correct up to 3x before escalating.
 5. **Never append session notes here.** Session discoveries → `AGENT_LEARNINGS.md`. Hardening state → `HARDENING-GATES.md`.
+
+---
+
+## 5. CI Cost Policy
+
+> **Goal:** Catch regressions without burning minutes on every commit. Split cheap mock tests (every PR) from expensive fullstack checks (nightly + manual).
+
+### Policy
+
+| Job | Trigger | Cost | Purpose |
+|-----|---------|------|---------|
+| **e2e-mock** | Every PR + push to main | Low (~3–5 min) | Mock API tests + `npm run test:e2e` — product regression |
+| **e2e-fullstack** | Nightly cron + `workflow_dispatch` + optional push to main | High (~10–15 min) | Real database + server run + health check — deploy gate evidence |
+
+### Path filters (skip CI on doc-only commits)
+
+```yaml
+# ci.yml — ignore docs and project-plan changes
+paths-ignore:
+  - 'timbuild/**'
+  - 'docs/**'
+  - '*.md'
+  - '*.mdc'
+```
+
+**Safer alternative** — positive paths on expensive jobs only:
+
+```yaml
+paths:
+  - 'app/**'
+  - 'src/**'
+  - 'test/**'
+  - 'conf/**'
+  - 'lib/**'
+  - 'build.sbt'
+  - 'package.json'
+  - '.github/workflows/**'
+```
+
+### Human habits
+
+| Habit | Effect |
+|-------|--------|
+| Draft PRs while iterating | CI can be skipped until "Ready for review" (repo setting) |
+| Batch pushes | Fewer Actions runs — push once when green locally |
+| `git push` only when `npm run verify` passes locally | You already have verify in `agent.md` — use it |
+
+### Example YAML (`.github/workflows/e2e.yml`)
+
+```yaml
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 17 * * *'   # nightly
+  workflow_dispatch:
+
+jobs:
+  e2e-mock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npx playwright install chromium
+      - run: npm run dev &
+      - run: npx wait-on http://localhost:5173 --timeout 60000
+      - run: npm run test:e2e -- --grep-invert fullstack-health
+
+  e2e-fullstack:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: postgres }
+        ports: ['5432:5432']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npx prisma db push
+      - run: npm run dev &
+      - run: npx wait-on http://localhost:5173 --timeout 60000
+      - run: npm run test:e2e -- --grep fullstack-health
+```
+
+### Optional label gate (pre-merge fullstack)
+
+```yaml
+if: contains(github.event.pull_request.labels.*.name, 'fullstack-ci')
+```
+
+Adds a pull-request label trigger for the expensive job without enabling it on every push.
