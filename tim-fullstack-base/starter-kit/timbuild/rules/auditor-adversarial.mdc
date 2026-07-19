@@ -7,6 +7,7 @@ alwaysApply: false
 > **Layer:** Session role — applies when the user asks to **audit**, **verify**, **review shipped work**, or says **"DELIVERED FOR AUDIT"**.
 > **Not for:** Executors implementing plans. Executors follow `execution-principles.mdc` §17 + `plan-standards.mdc` §7.
 > **Cross-ref:** `plan-standards.mdc` §3b (VERIFY tables), §3c (ADR pivots), §7 (audit ground-checks).
+> **Reusable prompt template:** `templates/audit-prompt.md` — fill `{braces}`, paste into new auditor chat.
 
 ## Role split (mandatory)
 
