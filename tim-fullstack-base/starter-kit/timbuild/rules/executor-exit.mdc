@@ -1,0 +1,43 @@
+---
+description: Session Exit VERIFY — mandatory checklist before SHIPPED or DELIVER. Run after SELF-REVIEW.
+globs: "**/*"
+alwaysApply: true
+---
+# Session Exit VERIFY (mandatory — run before SHIPPED / DELIVER)
+
+> **When:** After SELF-REVIEW, before the final message. Print this table with evidence.
+> **Forbidden:** Marking SHIPPED with only whole-suite totals or conversation memory.
+
+| # | Check | Command | Pass when |
+|---|-------|---------|-----------|
+| E1 | Files exist on disk | `Read` each file listed in your changes | All paths resolve — no stale references |
+| E2 | No UTF-8 BOM in touched files | `scripts/check-no-bom.ps1` or byte check: `Get-Content -Encoding Byte <file> | Select-Object -First 3` | Not `239 187 191` (BOM bytes `EF BB BF`) in any changed `.ts`/`.tsx`/`.scala` file |
+| E3 | Scope parity | `Read` controller extraction + `Read` test fixture body | Same JSON keys in both — request shape matches what controller extracts |
+| E4 | Negative grep (stale symbols) | `rg "<old-symbol>"` per plan or pivot ADR | 0 matches for abandoned patterns |
+| E5 | Scoped test from plan | `npx vitest run <file>` or `sbt "testOnly <scoped>"` | exit 0 with test name cited from plan; test COUNT included |
+| E6 | Tracking doc matches disk | `Read` status row + `rg` changed paths | Evidence from this session matches tracking doc claims |
+| E7 | Adversarial one-liner | Ask: "What would fail if caller sends X instead of Y?" | Answer recorded; if gap found, fixed or logged as Open Issue |
+
+### Deliverable format (append after checkpoint)
+
+```markdown
+### Session Exit VERIFY
+| # | Check | Evidence | Pass |
+|---|-------|----------|:----:|
+| E1 | Files exist | `Read` path/to/file.ts → resolved | ✅ |
+| E2 | No BOM | `check-no-bom.ps1` → exit 0 | ✅ |
+| E3 | Scope parity | `rg "extractedKey" controller.ts` + `rg "\"extractedKey\"" test.json` → same key | ✅ |
+| E4 | Stale symbols | `rg "oldPattern"` → 0 matches | ✅ |
+| E5 | Scoped test | `npx vitest run step3.test.ts` → exit 0, 3 passed | ✅ |
+| E6 | Tracking matches | `Read docs/status.md L12` → SHIPPED | ✅ |
+| E7 | Adversarial | "If request omits orgId, auth middleware rejects with 401" — verified | ✅ |
+```
+
+### Forbidden (session exit)
+
+| Action | Why |
+|--------|-----|
+| SHIPPED without E1–E7 table | No session-exit audit trail |
+| Whole-suite totals as sole evidence for E5 | Must cite scoped test name from plan |
+| `outstanding-tasks.md` update before E6 passes | Tracking must match disk, not wishful thinking |
+| "Looks correct" as evidence | Must be command output or file:line read |

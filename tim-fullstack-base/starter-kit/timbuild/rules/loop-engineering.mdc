@@ -306,6 +306,7 @@ SHIPPED only when every Result is PASS in **this** message **and** SELF-REVIEW r
 3. Plan-listed tests **exist on disk** and pass. **vitest/sbt Pass when MUST include execution count: `exit 0` AND `N ≥ 1` tests.** Exit 0 with 0 tests executed = FAIL. "Spec not created" when `Glob **/*Spec*` finds the file = FAIL.
 4. VERIFY table all ✅  
 5. `outstanding-tasks.md` top entry updated with verify commands + counts  
+6. **Session Exit VERIFY** (E1–E7) passed — files exist, no BOM, scope parity, stale symbols, scoped tests, tracking matches, adversarial check. See [`executor-exit.mdc`](executor-exit.mdc). BOM check via `scripts/check-no-bom.ps1`.
 
 SELF-REVIEW rows 2–3 may surface blockers for the **next** step; they do not authorize advancing to step N+1 in the same session. Only the human advances steps.
 

@@ -122,6 +122,13 @@ For any plan step touching `.scala` or `conf/sql/`, the VERIFY table must includ
 | Migration number (if SQL) | `Read migration-registry.md` | Version matches `Next free version` |
 | No duplicate V (if SQL) | `Glob conf/sql/V*.sql` | Version prefix unique, exactly 1 `V{new}__` file |
 
+#### Scope parity (mandatory for steps gating on request body fields)
+
+| Claim | Command / Read | Pass when |
+|-------|---------------|-----------|
+| Request shape = controller extraction | `Read test/fixture body` + `Read controller source` | Same JSON keys in both — test sends what controller extracts |
+| API client shape matches | `rg <endpoint> src/lib/api/*.ts` | Client sends same field names the controller expects |
+
 #### Forbidden substitutes
 
 The following do NOT count as VERIFY evidence and will cause the step to be **BLOCKED**:
